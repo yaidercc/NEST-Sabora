@@ -1,0 +1,16 @@
+version: "3"
+
+services:
+  db:
+    image: postgres:14.3
+    container_name: sabora_db
+    ports:
+      - ${DB_PORT}:5432
+    environment:
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: ${DB_USERNAME}
+    volumes:
+      - sabora_volumen:/var/lib/postgresql/data
+volumes:
+  sabora_volumen:
