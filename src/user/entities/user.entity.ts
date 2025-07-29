@@ -6,7 +6,7 @@ export class User {
     id: string;
 
     @Column("text")
-    name: string;
+    full_name: string;
 
     @Column("text")
     email: string;
@@ -21,6 +21,8 @@ export class User {
         default: true
     })
     is_active: boolean;
+
+    // role: general_roles;
 }
 
 

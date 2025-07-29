@@ -1,35 +1,18 @@
-import { Repository } from "typeorm";
-import { UserService } from "./user.service"
-import { User } from "./entities/user.entity";
-import { Test, TestingModule } from "@nestjs/testing";
-import { getRepositoryToken } from "@nestjs/typeorm";
+import { UserMother } from "./__test__/userMother";
+import { UserController } from "./user.controller"
 
-describe("UserController tests", () => {
-    let service: UserService;
-    let repo: Repository<User>
-
-    const mockPlatoRepo = {
-        findOneBy: jest.fn().mockResolvedValue([{ name: "yaider" }])
+describe("Unit tests UserControllers", () => {
+    let controller: UserController;
+    const mockUserController = {
+        create: jest.fn()
     }
-
-    beforeEach(async () => {
-        const module: TestingModule = await Test.createTestingModule({
-            providers: [
-                UserService,
-                {
-                    provide: getRepositoryToken(User),
-                    useValue: mockPlatoRepo
-                }
-            ]
-        }).compile()
-
-        service = module.get<UserService>(UserService)
-        repo = module.get<Repository<User>>(getRepositoryToken(User))
+    beforeEach(() => {
+        controller = new UserController(mockUserController as any)
     })
 
-    it('should return platos', async () => {
-        const result = await service.findOne("holi");
-        expect(result).toEqual([{ name: 'yaider' }]);
-        expect(mockPlatoRepo.findOneBy).toHaveBeenCalled();
-    });
+    it("create user", async() => {
+        const userDTO = UserMother.dto()
+        await controller.create(userDTO)
+        expect(mockUserController.create).toHaveBeenCalledWith(userDTO)
+    })
 })
