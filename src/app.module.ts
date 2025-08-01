@@ -4,6 +4,7 @@ import { EnvConfiguration } from './config/env.config';
 import { JoiEnvValidation } from './config/joi.validation';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { UserModule } from './user/user.module';
+import { SeedModule } from './seed/seed.module';
 
 @Module({
   imports: [
@@ -21,7 +22,8 @@ import { UserModule } from './user/user.module';
       autoLoadEntities: true,
       synchronize: true
     }),
-    UserModule
+    UserModule,
+    SeedModule
   ],
   controllers: [],
   providers: [],

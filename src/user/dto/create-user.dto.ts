@@ -29,5 +29,5 @@ export class CreateUserDto {
 
     @IsString()
     @IsUUID()
-    role: string;
+    role?: string;
 }

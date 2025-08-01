@@ -6,26 +6,30 @@ import { User } from './entities/user.entity';
 import { Repository } from 'typeorm';
 import { handleException } from 'src/common/handleErrors';
 import { genSaltSync, hashSync } from "bcrypt"
+import { GeneralRole } from './entities/general_role.entity';
 
 @Injectable()
 export class UserService {
   private readonly logger = new Logger("UserService")
   constructor(
     @InjectRepository(User)
-    private readonly userRepository: Repository<User>
+    private readonly userRepository: Repository<User>,
+    // @InjectRepository(GeneralRole)
+    // private readonly 
   ) { }
 
   async create(createUserDto: CreateUserDto) {
     const { password, ...restInfo } = createUserDto
+    
     try {
-      const user = this.userRepository.create({
-        ...restInfo,
-        password: hashSync(password, genSaltSync())
-      })
+      // const user = this.userRepository.create({
+      //   ...restInfo,
+      //   password: hashSync(password, genSaltSync()),
+      // })
 
-      await this.userRepository.save(user)
+      // await this.userRepository.save(user)
 
-      return user;
+      return "holi";
 
     } catch (error) {
       handleException(error, this.logger)
@@ -47,4 +51,12 @@ export class UserService {
   remove(id: number) {
     return `This action removes a #${id} user`;
   }
+
+  async removeAllUsers(){
+    const queryBuilder = await this.userRepository.createQueryBuilder()
+    queryBuilder
+    .delete()
+    .where({})
+    .execute()
+  } 
 }

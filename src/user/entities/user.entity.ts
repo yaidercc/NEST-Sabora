@@ -1,4 +1,5 @@
-import { Column, Entity, PrimaryGeneratedColumn } from "typeorm";
+import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
+import { GeneralRole } from "./general_role.entity";
 
 @Entity("user")
 export class User {
@@ -17,12 +18,13 @@ export class User {
     @Column("text")
     phone: string;
 
-    @Column("bool", {
+    @Column("boolean", {
         default: true
     })
     is_active: boolean;
 
-    // role: general_roles;
+    @ManyToOne(() => GeneralRole, role => role.user, { eager: true })
+    role: GeneralRole;
 }
 
 
