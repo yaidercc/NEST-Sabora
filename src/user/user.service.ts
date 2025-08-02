@@ -8,7 +8,7 @@ import { handleException } from 'src/common/handleErrors';
 import { genSaltSync, hashSync } from "bcrypt"
 import { GeneralRole } from './entities/general_role.entity';
 import { GeneralRoles } from './enums/generalRole';
-import {  validate as isUUID} from "uuid"
+import { validate as isUUID } from "uuid"
 
 @Injectable()
 export class UserService {
@@ -20,10 +20,11 @@ export class UserService {
     private readonly generalRoleRepository: Repository<GeneralRole>
   ) { }
 
-  async create(createUserDto: CreateUserDto) {
+  async create(createUserDto: CreateUserDto, user?: User) {
     // TODO: Validate if an user is created by an admin
     const { password, role, ...restInfo } = createUserDto
-    const generalRole = await this.findGeneralRole(role || GeneralRoles.client)
+    const queryRole = user ? role : GeneralRoles.client
+    const generalRole = await this.findGeneralRole(queryRole!)
     try {
       const user = this.userRepository.create({
         ...restInfo,
@@ -66,10 +67,10 @@ export class UserService {
 
   private async findGeneralRole(term: string) {
     let role: GeneralRole | null = null;
-    if(isUUID(term)) role = await this.generalRoleRepository.findOneBy({id: term})
-    else role = await this.generalRoleRepository.findOneBy({name: term})
-    
-    if(!role){
+    if (isUUID(term)) role = await this.generalRoleRepository.findOneBy({ id: term })
+    else role = await this.generalRoleRepository.findOneBy({ name: term })
+
+    if (!role) {
       throw new BadRequestException("general role not found")
     }
 

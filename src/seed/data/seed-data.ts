@@ -24,6 +24,10 @@ export const initialData: InitialData = {
     generalRoles: [
         {
             id: uuid(),
+            name: GeneralRoles.admin
+        },
+        {
+            id: uuid(),
             name: GeneralRoles.employee
         },
         {

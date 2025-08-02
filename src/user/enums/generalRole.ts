@@ -1,4 +1,5 @@
 export enum GeneralRoles {
     client = "client",
-    employee = "employee"
+    employee = "employee",
+    admin = "admin"
 }

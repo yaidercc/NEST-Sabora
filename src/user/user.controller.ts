@@ -1,9 +1,12 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards } from '@nestjs/common';
 import { UserService } from './user.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { ApiResponse } from '@nestjs/swagger';
 import { User } from './entities/user.entity';
+import { AuthGuard } from "@nestjs/passport"
+import { Auth } from './decorators/auth.decorator';
+import { getUser } from './decorators/get-user.decorator';
 
 @Controller('user')
 export class UserController {
@@ -19,8 +22,12 @@ export class UserController {
     status: 400,
     description: "Bad request"
   })
-  create(@Body() createUserDto: CreateUserDto) {
-    return this.userService.create(createUserDto);
+  @Auth()
+  create(
+    @Body() createUserDto: CreateUserDto,
+    @getUser() user
+  ) {
+    return this.userService.create(createUserDto, user);
   }
 
   @Get()
