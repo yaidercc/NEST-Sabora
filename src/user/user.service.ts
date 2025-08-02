@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { BadRequestException, Injectable, Logger } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -7,6 +7,7 @@ import { Repository } from 'typeorm';
 import { handleException } from 'src/common/handleErrors';
 import { genSaltSync, hashSync } from "bcrypt"
 import { GeneralRole } from './entities/general_role.entity';
+import { GeneralRoles } from './enums/generalRole';
 
 @Injectable()
 export class UserService {
@@ -14,22 +15,24 @@ export class UserService {
   constructor(
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
-    // @InjectRepository(GeneralRole)
-    // private readonly 
+    @InjectRepository(GeneralRole)
+    private readonly generalRoleRepository: Repository<GeneralRole>
   ) { }
 
   async create(createUserDto: CreateUserDto) {
-    const { password, ...restInfo } = createUserDto
-    
+    // TODO: Validate if an user is created by an admin
+    const { password, role, ...restInfo } = createUserDto
+    const generalRole = await this.findGeneralRole(role || GeneralRoles.client)
     try {
-      // const user = this.userRepository.create({
-      //   ...restInfo,
-      //   password: hashSync(password, genSaltSync()),
-      // })
+      const user = this.userRepository.create({
+        ...restInfo,
+        role: generalRole!,
+        password: hashSync(password, genSaltSync()),
+      })
 
-      // await this.userRepository.save(user)
+      await this.userRepository.save(user)
 
-      return "holi";
+      return user;
 
     } catch (error) {
       handleException(error, this.logger)
@@ -52,11 +55,26 @@ export class UserService {
     return `This action removes a #${id} user`;
   }
 
-  async removeAllUsers(){
+  async removeAllUsers() {
     const queryBuilder = await this.userRepository.createQueryBuilder()
     queryBuilder
-    .delete()
-    .where({})
-    .execute()
-  } 
+      .delete()
+      .where({})
+      .execute()
+  }
+
+  private async findGeneralRole(term: string) {
+    const queryBuilder = this.generalRoleRepository.createQueryBuilder()
+
+    const role = await queryBuilder.where("id=:id or name=:name", {
+      name: term.toLowerCase(),
+      id: term
+    }).getOne()
+    
+    if(!role){
+      throw new BadRequestException("general role not found")
+    }
+
+    return role
+  }
 }
