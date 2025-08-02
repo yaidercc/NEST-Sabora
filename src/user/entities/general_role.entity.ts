@@ -12,7 +12,8 @@ export class GeneralRole {
 
     @OneToMany(
         () => User,
-        user => user.role
+        user => user.role,
+        {eager: false}
     )
     user: User[]
 }

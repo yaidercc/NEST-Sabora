@@ -8,6 +8,7 @@ import { handleException } from 'src/common/handleErrors';
 import { genSaltSync, hashSync } from "bcrypt"
 import { GeneralRole } from './entities/general_role.entity';
 import { GeneralRoles } from './enums/generalRole';
+import {  validate as isUUID} from "uuid"
 
 @Injectable()
 export class UserService {
@@ -64,12 +65,9 @@ export class UserService {
   }
 
   private async findGeneralRole(term: string) {
-    const queryBuilder = this.generalRoleRepository.createQueryBuilder()
-
-    const role = await queryBuilder.where("id=:id or name=:name", {
-      name: term.toLowerCase(),
-      id: term
-    }).getOne()
+    let role: GeneralRole | null = null;
+    if(isUUID(term)) role = await this.generalRoleRepository.findOneBy({id: term})
+    else role = await this.generalRoleRepository.findOneBy({name: term})
     
     if(!role){
       throw new BadRequestException("general role not found")
