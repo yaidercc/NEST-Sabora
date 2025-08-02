@@ -45,8 +45,41 @@ yarn install
 
 5. **Build database:**
 ``` 
-docker-compose up -d 
+yarn docker:dev
 ``` 
 
 6. **Execute app** 
 ```yarn start:dev```
+
+
+### 🧪 Tests
+
+1. Clone the file ```.env.test.template``` and rename to ```.env.test```
+
+2. **Build database:**
+``` 
+yarn docker:test
+``` 
+
+3. **Execute all tests** 
+``` 
+yarn 
+```
+
+4. **Execute unit tests** 
+
+``` 
+yarn test:unit
+```
+
+3. **Execute integration tests** 
+
+``` 
+yarn test:int
+```
+
+3. **Execute integration tests** 
+
+``` 
+yarn test:e2e
+```
