@@ -1,4 +1,4 @@
-import { Column, Entity, Index, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
+import { BeforeInsert, BeforeUpdate, Column, Entity, Index, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
 import { GeneralRole } from "./general_role.entity";
 import { ApiProperty } from "@nestjs/swagger";
 
@@ -20,6 +20,14 @@ export class User {
     @Index()
     @Column("text")
     full_name: string;
+
+    @ApiProperty({
+        example: "JhonDoe",
+        description: "Username"
+    })
+    @Index()
+    @Column("text")
+    username: string;
 
     @ApiProperty({
         example: "user@gmail.com",
@@ -56,6 +64,15 @@ export class User {
 
     @ManyToOne(() => GeneralRole, role => role.user, { eager: true })
     role: GeneralRole;
+
+
+    @BeforeInsert()
+    @BeforeUpdate()
+    beforeInsertOrUpdate() {
+        if (this.email) this.email = this.email.toLowerCase()
+        if (this.full_name) this.full_name = this.full_name.toLowerCase()
+        if (this.phone) this.phone = this.phone.toLowerCase()
+    }
 }
 
 

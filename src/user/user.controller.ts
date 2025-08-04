@@ -49,15 +49,20 @@ export class UserController {
   }
 
   @Get()
+  @ApiResponse({
+    status: 200,
+    description: "Users",
+    type: [User]
+  })
   @Auth([GeneralRoles.admin], { allowAdmin: true })
   findAll() {
     return this.userService.findAll();
   }
 
-  @Get(':id')
-  @Auth([], { allowAdmin: true })
-  findOne(@Param('id') id: string) {
-    return this.userService.findOne(id);
+  @Get(':term')
+  @Auth([GeneralRoles.admin], { allowAdmin: true })
+  findOne(@Param('term') term: string) {
+    return this.userService.findOne(term);
   }
 
   @Patch(':id')

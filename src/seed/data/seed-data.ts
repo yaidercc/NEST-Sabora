@@ -10,6 +10,7 @@ interface GeneralRole {
 interface User {
     id: string,
     full_name: string,
+    username: string,
     email: string,
     password: string,
     phone: string
@@ -38,6 +39,7 @@ export const initialData: InitialData = {
     user: {
         id: uuid(),
         full_name: "jhon doe",
+        username: "jhonDoe",
         email: "jhon@gmail.com",
         password: hashSync("Jhondoe123*", genSaltSync()),
         phone: "573165482747"

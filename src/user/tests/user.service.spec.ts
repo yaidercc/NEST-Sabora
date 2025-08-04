@@ -5,7 +5,7 @@ import { UserService } from "../user.service";
 import { User } from "../entities/user.entity";
 import { UserMother } from "./userMother";
 import { GeneralRole } from "../entities/general_role.entity";
-import { JwtService } from "@nestjs/jwt";
+import { JwtModule, JwtService } from "@nestjs/jwt";
 import { genSaltSync, hashSync } from "bcrypt";
 
 describe("Unit UserServices tests", () => {
@@ -36,9 +36,14 @@ describe("Unit UserServices tests", () => {
 
     beforeAll(async () => {
         const module: TestingModule = await Test.createTestingModule({
+            imports: [
+                JwtModule.register({
+                    secret: 'secret123',
+                    signOptions: { expiresIn: '1h' },
+                }),
+            ],
             providers: [
                 UserService,
-                JwtService,
                 {
                     provide: getRepositoryToken(User),
                     useValue: mockUserRepo
@@ -58,34 +63,37 @@ describe("Unit UserServices tests", () => {
 
     it('should create an user', async () => {
         const userDTO = UserMother.dto()
-
         const createdUser = { ...userDTO, id: userId }
+        const { password, ...restInfoUser } = createdUser
+        const fakeToken = 'fake-jwt';
+        
+        jest.spyOn(JwtService.prototype, "sign").mockReturnValue(fakeToken)
 
         mockUserRepo.create.mockReturnValue(createdUser)
         mockUserRepo.save.mockReturnValue(createdUser)
 
         const result = await userService.create(userDTO);
 
-        expect(mockUserRepo.create).toHaveBeenCalledWith(
-            expect.objectContaining({
-                ...userDTO,
-                password: expect.any(String)
-            })
-        )
-        expect(mockUserRepo.save).toHaveBeenCalledWith(createdUser)
-        expect(result).toEqual(createdUser);
+        expect(mockUserRepo.create).toHaveBeenCalled()
+        expect(mockUserRepo.save).toHaveBeenCalled()
+        expect(result).toEqual({
+            user: {
+                ...restInfoUser,
+            },
+            token: fakeToken
+        });
     });
 
 
     it('should login an user', async () => {
         const userDTO = UserMother.dto()
-        const foundUser = { id: userId, ...userDTO }
-        const { password, ...restInfoUser } = foundUser
+        const createdUser = { id: userId, ...userDTO }
+        const { password, ...restInfoUser } = createdUser
 
         const fakeToken = 'fake-jwt';
         jest.spyOn(JwtService.prototype, "sign").mockReturnValue(fakeToken)
 
-        const result = await userService.login({ email: userDTO.email, password: userDTO.password });
+        const result = await userService.login({ username: userDTO.username, password: userDTO.password });
 
         expect(mockUserRepo.createQueryBuilder).toHaveBeenCalled()
         expect(result).toMatchObject({

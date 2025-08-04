@@ -10,6 +10,7 @@ export class UserMother {
     static dto(): CreateUserDto {
         return {
             full_name: "yaider cordoba cordoba",
+            username: "yaidercc",
             email: "yaider@gmail.com",
             password: "cordobac123",
             phone: "573165482746"
@@ -19,6 +20,7 @@ export class UserMother {
     static randomDTO(): CreateUserDto {
         return {
             full_name: Chance().name(),
+            username: Chance().name().split(" ")[0],
             email: Chance().email(),
             password: "cordobac123",
             phone: `573${Chance().integer({ min: 0, max: 9 })}${Chance().string({ length: 7, pool: '0123456789' })}`

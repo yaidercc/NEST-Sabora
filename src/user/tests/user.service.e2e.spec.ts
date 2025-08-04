@@ -84,7 +84,7 @@ describe("Integrations test UserService", () => {
         await seedService.executeSEED();
         const loginResponse = await request(app.getHttpServer())
             .post("/user/login")
-            .send({ email: initialData.user.email, password: "Jhondoe123*" });
+            .send({ username: initialData.user.username, password: "Jhondoe123*" });
 
         adminLogin = loginResponse.body;
         clientRole = await repoGeneralRole.findOneBy({ name: GeneralRoles.client })
@@ -101,6 +101,8 @@ describe("Integrations test UserService", () => {
 
     it("POST /user", async () => {
         const userDTO = UserMother.dto();
+        const fakeToken = 'fake-jwt'
+        jest.spyOn(JwtService.prototype, "sign").mockReturnValue(fakeToken)
 
         const response = await request(app.getHttpServer())
             .post('/user')
@@ -109,39 +111,44 @@ describe("Integrations test UserService", () => {
 
         expect(response.status).toBe(201)
         expect(response.body).toMatchObject({
-            full_name: userDTO.full_name,
-            email: userDTO.email,
-            phone: userDTO.phone,
-            role: {
-                id: clientRole?.id,
-                name: clientRole?.name
-            }
+            user: {
+                full_name: userDTO.full_name,
+                email: userDTO.email,
+                phone: userDTO.phone,
+                role: {
+                    id: clientRole?.id,
+                    name: clientRole?.name
+                }
+            },
+            token: fakeToken
         })
     })
 
     it('POST /user/login', async () => {
         const userDTO = UserMother.dto();
-        const userCreated = await userService.create(userDTO)
-
         const fakeToken = 'fake-jwt'
-
         jest.spyOn(JwtService.prototype, "sign").mockReturnValue(fakeToken)
+        await userService.create(userDTO)
+
         const response = await request(app.getHttpServer())
             .post("/user/login")
-            .send({ email: userDTO.email, password: userDTO.password })
+            .send({ username: userDTO.username, password: userDTO.password })
 
         expect(response.status).toBe(200)
         expect(response.body).toMatchObject(
-            {
-                user: {
-                    ...userCreated,
-                    role: {
-                        id: clientRole?.id,
-                        name: clientRole?.name
-                    }
-                },
-                token: fakeToken
-            }
+           {
+            user: {
+                full_name: userDTO.full_name,
+                email: userDTO.email,
+                phone: userDTO.phone,
+                role: {
+                    id: clientRole?.id,
+                    name: clientRole?.name
+                }
+            },
+            token: fakeToken
+           }
+
         )
     });
 

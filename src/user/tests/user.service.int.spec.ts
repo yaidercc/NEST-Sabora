@@ -53,7 +53,7 @@ describe("Integrations test UserService", () => {
         await module.close();
     });
 
-    it.only("Should create an user", async () => {
+    it("Should create an user", async () => {
         const userDTO = UserMother.dto();
         const fakeToken = 'fake-jwt'
         jest.spyOn(JwtService.prototype, "sign").mockReturnValue(fakeToken)
@@ -82,7 +82,7 @@ describe("Integrations test UserService", () => {
         const userCreated = await userService.create(userDTO)
 
 
-        const result = await userService.login({ email: userDTO.email, password: userDTO.password });
+        const result = await userService.login({ username: userDTO.username, password: userDTO.password });
 
         expect(result).toMatchObject(userCreated!)
     });

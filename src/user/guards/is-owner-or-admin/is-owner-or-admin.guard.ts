@@ -1,25 +1,28 @@
 import { CanActivate, ExecutionContext, ForbiddenException, Injectable } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
-import { Observable } from 'rxjs';
 import { OWNER_ADMIN_KEY } from 'src/user/decorators/owner-protected.decorator';
+import { GeneralRoles } from 'src/user/enums/roles';
 
 @Injectable()
 export class IsOwnerOrAdminGuard implements CanActivate {
-  constructor(private readonly reflector: Reflector){}
-  canActivate(
+  constructor(
+    private readonly reflector: Reflector
+  ) { }
+  async canActivate(
     context: ExecutionContext,
-  ): boolean | Promise<boolean> | Observable<boolean> {
-    const allowAdmin = this.reflector.get(OWNER_ADMIN_KEY, context.getHandler());
+  ): Promise<boolean> {
+    const { allowAdmin } = this.reflector.get(OWNER_ADMIN_KEY, context.getHandler());
     const req = context.switchToHttp().getRequest();
     const user = req.user
-    const term = req.params.term;
+    const id = req.params.id;
 
-    // TODO: findone service
-    const userToFind = null;
+    if (user.role.name === GeneralRoles.admin) {
+      if (allowAdmin) return true
+      throw new ForbiddenException(`You don´t have the permission to perform this action`)
+    } else if (id === user.id) {
+      return true
+    }
 
-
-    // if(userToFind.id === user.id || user.role.name === GeneralRoles.admin) return true
-    return true
     throw new ForbiddenException(`You don´t have the permission to perform this action`)
   }
 }

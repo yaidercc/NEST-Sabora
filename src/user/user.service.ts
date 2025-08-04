@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable, Logger } from '@nestjs/common';
+import { BadRequestException, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -47,20 +47,20 @@ export class UserService {
   }
 
   async login(loginUserDto: LoginUserDto) {
-    const { email, password } = loginUserDto
+    const { username, password } = loginUserDto
     try {
       const user = await this.userRepository
         .createQueryBuilder("user")
         .addSelect("user.password")
         .leftJoinAndSelect("user.role", "role")
-        .where("user.email=:email", { email })
+        .where("user.username=:username", { username })
         .getOne()
 
-      if (!user) throw new BadRequestException("email or password are incorrect")
+      if (!user) throw new BadRequestException("username or password are incorrect")
 
       const checkPassword = compareSync(password, user?.password)
 
-      if (!checkPassword) throw new BadRequestException("email or password are incorrect")
+      if (!checkPassword) throw new BadRequestException("username or password are incorrect")
 
       const { password: _, ...restUserInfo } = user
       return {
@@ -78,8 +78,23 @@ export class UserService {
     return user
   }
 
-  async findOne(id: string) {
-    return this.userRepository.findOneBy({ id })
+  async findOne(term: string) {
+    let user: User | null = null;
+
+    if (isUUID(term)) user = await this.userRepository.findOneBy({ id: term })
+    else {
+      const queryBuilder = this.userRepository.createQueryBuilder("user");
+      user = await queryBuilder
+        .leftJoinAndSelect("user.role", "role")
+        .where("email=:term or phone=:term or full_name=:term", {
+          term: term.toLowerCase(),
+        }).getOne()
+
+    }
+
+    if(!user) throw new NotFoundException("User not found")
+
+    return user
   }
 
   update(id: number, updateUserDto: UpdateUserDto) {
