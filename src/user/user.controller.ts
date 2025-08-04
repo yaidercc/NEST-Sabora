@@ -7,6 +7,7 @@ import { User } from './entities/user.entity';
 import { AuthGuard } from "@nestjs/passport"
 import { Auth } from './decorators/auth.decorator';
 import { getUser } from './decorators/get-user.decorator';
+import { LoginUserDto } from './dto/login-user.dto';
 
 @Controller('user')
 export class UserController {
@@ -22,12 +23,17 @@ export class UserController {
     status: 400,
     description: "Bad request"
   })
-  @Auth()
-  create(
-    @Body() createUserDto: CreateUserDto,
-    @getUser() user
+  create( 
+    @Body() createUserDto: CreateUserDto
   ) {
-    return this.userService.create(createUserDto, user);
+    return this.userService.create(createUserDto);
+  }
+
+  @Post("login")
+  login(
+    @Body() loginUserDto: LoginUserDto
+  ) {
+    return this.userService.login(loginUserDto);
   }
 
   @Get()

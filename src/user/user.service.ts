@@ -5,10 +5,13 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { User } from './entities/user.entity';
 import { Repository } from 'typeorm';
 import { handleException } from 'src/common/handleErrors';
-import { genSaltSync, hashSync } from "bcrypt"
+import { genSaltSync, hashSync, compareSync } from "bcrypt"
 import { GeneralRole } from './entities/general_role.entity';
 import { GeneralRoles } from './enums/generalRole';
 import { validate as isUUID } from "uuid"
+import { LoginUserDto } from './dto/login-user.dto';
+import { JwtService } from '@nestjs/jwt';
+import { JwtPayload } from './interfaces/jwtInterface';
 
 @Injectable()
 export class UserService {
@@ -17,14 +20,13 @@ export class UserService {
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
     @InjectRepository(GeneralRole)
-    private readonly generalRoleRepository: Repository<GeneralRole>
+    private readonly generalRoleRepository: Repository<GeneralRole>,
+    private readonly jwtService: JwtService,
   ) { }
 
-  async create(createUserDto: CreateUserDto, user?: User) {
-    // TODO: Validate if an user is created by an admin
-    const { password, role, ...restInfo } = createUserDto
-    const queryRole = user ? role : GeneralRoles.client
-    const generalRole = await this.findGeneralRole(queryRole!)
+  async create(createUserDto: CreateUserDto) {
+    const { password, ...restInfo } = createUserDto
+    const generalRole = await this.findGeneralRole(GeneralRoles.client)
     try {
       const user = this.userRepository.create({
         ...restInfo,
@@ -35,6 +37,33 @@ export class UserService {
       await this.userRepository.save(user)
 
       return user;
+
+    } catch (error) {
+      handleException(error, this.logger)
+    }
+  }
+
+  async login(loginUserDto: LoginUserDto) {
+    const { email, password } = loginUserDto
+    try {
+      const user = await this.userRepository
+        .createQueryBuilder("user")
+        .addSelect("user.password")
+        .leftJoinAndSelect("user.role", "role")
+        .where("user.email=:email", { email })
+        .getOne()
+
+      if (!user) throw new BadRequestException("email or password are incorrect1")
+
+      const checkPassword = compareSync(password, user?.password)
+
+      if (!checkPassword) throw new BadRequestException("email or password are incorrect2")
+
+      const { password: _, ...restUserInfo } = user
+      return {
+        user: restUserInfo,
+        token: this.generateJWT({ id: user.id })
+      }
 
     } catch (error) {
       handleException(error, this.logger)
@@ -55,6 +84,10 @@ export class UserService {
 
   remove(id: number) {
     return `This action removes a #${id} user`;
+  }
+
+  generateJWT(payload: JwtPayload) {
+    return this.jwtService.sign(payload)
   }
 
   async removeAllUsers() {

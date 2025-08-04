@@ -6,27 +6,38 @@ import { getRepositoryToken, TypeOrmModule } from "@nestjs/typeorm";
 import { UserMother } from "./userMother";
 import { GeneralRole } from "../entities/general_role.entity";
 import { GeneralRoles } from "../enums/generalRole";
+import { JwtService } from "@nestjs/jwt";
+import { UserModule } from "../user.module";
+import { JoiEnvValidation } from "src/config/joi.validation";
+import { EnvConfiguration } from "src/config/env.config";
+import { ConfigModule } from "@nestjs/config";
 
 describe("Integrations test UserService", () => {
     let service: UserService;
     let repoUser: Repository<User>
     let repoGeneralRole: Repository<GeneralRole>
     let module: TestingModule;
-    
+
 
     beforeAll(async () => {
         module = await Test.createTestingModule({
             imports: [
+                ConfigModule.forRoot({
+                    envFilePath: ".env.test", 
+                    load: [EnvConfiguration],
+                    validationSchema: JoiEnvValidation
+                }),
                 TypeOrmModule.forRoot({
                     type: "sqlite",
                     database: ":memory:",
-                    entities: [User,GeneralRole],
+                    entities: [User, GeneralRole],
                     synchronize: true,
                     dropSchema: true
                 }),
-                TypeOrmModule.forFeature([User,GeneralRole])
+                TypeOrmModule.forFeature([User, GeneralRole]),
+                UserModule
             ],
-            providers: [UserService]
+            providers: [UserService, JwtService]
         }).compile()
 
         service = module.get<UserService>(UserService);
@@ -48,7 +59,7 @@ describe("Integrations test UserService", () => {
 
         const response = await service.create(userDTO)
 
-        const clientRole = await repoGeneralRole.findOneBy({name: GeneralRoles.client})
+        const clientRole = await repoGeneralRole.findOneBy({ name: GeneralRoles.client })
         expect(response).toBeDefined()
         expect(response).toMatchObject({
             full_name: userDTO.full_name,

@@ -12,6 +12,7 @@ import { INestApplication } from "@nestjs/common";
 import * as request from 'supertest';
 import { UserModule } from "../user.module";
 import { GeneralRoles } from "../enums/generalRole";
+import { JwtService } from "@nestjs/jwt";
 
 describe("Integrations test UserService", () => {
     // setting up the necesaries variables
@@ -47,7 +48,7 @@ describe("Integrations test UserService", () => {
                 TypeOrmModule.forFeature([User, GeneralRole]),
                 UserModule
             ],
-            providers: [UserService]
+            providers: [UserService,JwtService]
         }).compile()
 
         // Preparing the services en repositories to be used on the tests

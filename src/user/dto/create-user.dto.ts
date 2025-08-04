@@ -27,7 +27,4 @@ export class CreateUserDto {
     @IsOptional()
     is_active?: boolean;
 
-    @IsString()
-    @IsUUID()
-    role?: string;
 }
