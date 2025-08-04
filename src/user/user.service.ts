@@ -53,11 +53,11 @@ export class UserService {
         .where("user.email=:email", { email })
         .getOne()
 
-      if (!user) throw new BadRequestException("email or password are incorrect1")
+      if (!user) throw new BadRequestException("email or password are incorrect")
 
       const checkPassword = compareSync(password, user?.password)
 
-      if (!checkPassword) throw new BadRequestException("email or password are incorrect2")
+      if (!checkPassword) throw new BadRequestException("email or password are incorrect")
 
       const { password: _, ...restUserInfo } = user
       return {

@@ -21,6 +21,7 @@ describe("Integrations test UserService", () => {
     let repoGeneralRole: Repository<GeneralRole>
     let module: TestingModule;
     let app: INestApplication
+    let clientRole: GeneralRole | null
 
 
     beforeAll(async () => {
@@ -48,7 +49,7 @@ describe("Integrations test UserService", () => {
                 TypeOrmModule.forFeature([User, GeneralRole]),
                 UserModule
             ],
-            providers: [UserService,JwtService]
+            providers: [UserService, JwtService]
         }).compile()
 
         // Preparing the services en repositories to be used on the tests
@@ -62,6 +63,8 @@ describe("Integrations test UserService", () => {
 
         // Executing the seeders for the general roles
         await UserMother.seedRoles(repoGeneralRole)
+
+        clientRole = await repoGeneralRole.findOneBy({ name: GeneralRoles.client })
     })
 
     // Cleaning up the data before each tests
@@ -81,7 +84,7 @@ describe("Integrations test UserService", () => {
             .post('/user')
             .send(userDTO)
 
-        const clientRole = await repoGeneralRole.findOneBy({ name: GeneralRoles.client })
+
         expect(response.status).toBe(201)
         expect(response.body).toMatchObject({
             full_name: userDTO.full_name,
@@ -93,4 +96,31 @@ describe("Integrations test UserService", () => {
             }
         })
     })
+
+    it('POST /user/login', async () => {
+        const userDTO = UserMother.dto();
+        const userCreated = await service.create(userDTO)
+        const { password, ...restuserInfo } = userCreated!
+
+        const fakeToken = 'fake-jwt'
+
+        jest.spyOn(JwtService.prototype, "sign").mockReturnValue(fakeToken)
+        const response = await request(app.getHttpServer())
+            .post("/user/login")
+            .send({ email: userDTO.email, password: userDTO.password })
+
+        expect(response.status).toBe(200)
+        expect(response.body).toMatchObject(
+            {
+                user: {
+                    ...restuserInfo,
+                    role: {
+                        id: clientRole?.id,
+                        name: clientRole?.name
+                    }
+                },
+                token: fakeToken
+            }
+        )
+    });
 })

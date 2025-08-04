@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, HttpCode } from '@nestjs/common';
 import { UserService } from './user.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
@@ -8,6 +8,7 @@ import { AuthGuard } from "@nestjs/passport"
 import { Auth } from './decorators/auth.decorator';
 import { getUser } from './decorators/get-user.decorator';
 import { LoginUserDto } from './dto/login-user.dto';
+import { UserLogin } from './interfaces/userResponses';
 
 @Controller('user')
 export class UserController {
@@ -23,13 +24,23 @@ export class UserController {
     status: 400,
     description: "Bad request"
   })
-  create( 
+  create(
     @Body() createUserDto: CreateUserDto
   ) {
     return this.userService.create(createUserDto);
   }
 
   @Post("login")
+  @HttpCode(200)
+  @ApiResponse({
+    status: 200,
+    description: "User logged",
+    type: UserLogin
+  })
+  @ApiResponse({
+    status: 400,
+    description: "email or password are incorrect"
+  })
   login(
     @Body() loginUserDto: LoginUserDto
   ) {

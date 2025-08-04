@@ -23,7 +23,7 @@ describe("Integrations test UserService", () => {
         module = await Test.createTestingModule({
             imports: [
                 ConfigModule.forRoot({
-                    envFilePath: ".env.test", 
+                    envFilePath: ".env.test",
                     load: [EnvConfiguration],
                     validationSchema: JoiEnvValidation
                 }),
@@ -68,4 +68,22 @@ describe("Integrations test UserService", () => {
             role: clientRole
         })
     })
+
+    it('should login an user', async () => {
+        const userDTO = UserMother.dto();
+        const userCreated = await service.create(userDTO)
+        const {password, ...restuserInfo } = userCreated!
+
+        const fakeToken = 'fake-jwt'
+
+        jest.spyOn(JwtService.prototype, "sign").mockReturnValue(fakeToken)
+        const result = await service.login({ email: userDTO.email, password: userDTO.password });
+
+        expect(result).toMatchObject(
+            {
+                user: restuserInfo,
+                token: fakeToken
+            }
+        )
+    });
 })
