@@ -1,14 +1,15 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, HttpCode } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, HttpCode } from '@nestjs/common';
 import { UserService } from './user.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { ApiResponse } from '@nestjs/swagger';
 import { User } from './entities/user.entity';
-import { AuthGuard } from "@nestjs/passport"
 import { Auth } from './decorators/auth.decorator';
 import { getUser } from './decorators/get-user.decorator';
 import { LoginUserDto } from './dto/login-user.dto';
 import { UserLogin } from './interfaces/userResponses';
+import { GeneralRole } from './entities/general_role.entity';
+import { GeneralRoles } from './enums/roles';
 
 @Controller('user')
 export class UserController {
@@ -48,11 +49,13 @@ export class UserController {
   }
 
   @Get()
+  @Auth([GeneralRoles.admin], { allowAdmin: true })
   findAll() {
     return this.userService.findAll();
   }
 
   @Get(':id')
+  @Auth([], { allowAdmin: true })
   findOne(@Param('id') id: string) {
     return this.userService.findOne(id);
   }

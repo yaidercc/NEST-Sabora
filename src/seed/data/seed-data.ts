@@ -1,4 +1,4 @@
-import { GeneralRoles } from "src/user/enums/generalRole"
+import { GeneralRoles } from "src/user/enums/roles"
 import { v4 as uuid } from "uuid"
 import { genSaltSync, hashSync } from "bcrypt"
 
@@ -39,8 +39,8 @@ export const initialData: InitialData = {
         id: uuid(),
         full_name: "jhon doe",
         email: "jhon@gmail.com",
-        password: hashSync("jhondoe123", genSaltSync()),
-        phone: "573165482746"
+        password: hashSync("Jhondoe123*", genSaltSync()),
+        phone: "573165482747"
     }
 
 }

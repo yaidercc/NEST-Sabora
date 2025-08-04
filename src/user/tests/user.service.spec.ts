@@ -6,13 +6,12 @@ import { User } from "../entities/user.entity";
 import { UserMother } from "./userMother";
 import { GeneralRole } from "../entities/general_role.entity";
 import { JwtService } from "@nestjs/jwt";
-import { v4 as uuid } from "uuid"
 import { genSaltSync, hashSync } from "bcrypt";
 
 describe("Unit UserServices tests", () => {
-    let service: UserService;
-    let repo: Repository<User>
-    let repoGeneralRole: Repository<GeneralRole>
+    let userService: UserService;
+    let userRepository: Repository<User>
+    let generalRoleRepository: Repository<GeneralRole>
     const userId = "484918ef-abc6-43a6-a26f-44bffe9a1ff8"
 
     const mockUserRepo = {
@@ -24,7 +23,7 @@ describe("Unit UserServices tests", () => {
             leftJoinAndSelect: jest.fn().mockReturnThis(),
             getOne: jest.fn().mockResolvedValue({ id: userId, ...UserMother.dto(), password: hashSync(UserMother.dto().password, genSaltSync()) }),
         }),
-
+        find: jest.fn()
     }
 
     const mockRoleRepo = {
@@ -51,10 +50,9 @@ describe("Unit UserServices tests", () => {
             ]
         }).compile()
 
-        service = module.get<UserService>(UserService)
-        repo = module.get<Repository<User>>(getRepositoryToken(User))
-        repoGeneralRole = module.get<Repository<GeneralRole>>(getRepositoryToken(GeneralRole))
-
+        userService = module.get<UserService>(UserService)
+        userRepository = module.get<Repository<User>>(getRepositoryToken(User))
+        generalRoleRepository = module.get<Repository<GeneralRole>>(getRepositoryToken(GeneralRole))
 
     })
 
@@ -66,7 +64,7 @@ describe("Unit UserServices tests", () => {
         mockUserRepo.create.mockReturnValue(createdUser)
         mockUserRepo.save.mockReturnValue(createdUser)
 
-        const result = await service.create(userDTO);
+        const result = await userService.create(userDTO);
 
         expect(mockUserRepo.create).toHaveBeenCalledWith(
             expect.objectContaining({
@@ -87,12 +85,27 @@ describe("Unit UserServices tests", () => {
         const fakeToken = 'fake-jwt';
         jest.spyOn(JwtService.prototype, "sign").mockReturnValue(fakeToken)
 
-        const result = await service.login({ email: userDTO.email, password: userDTO.password });
+        const result = await userService.login({ email: userDTO.email, password: userDTO.password });
 
         expect(mockUserRepo.createQueryBuilder).toHaveBeenCalled()
         expect(result).toMatchObject({
             user: { ...restInfoUser, id: userId },
             token: fakeToken
         })
+    });
+
+    it('should return users created', async () => {
+        const users = [
+            UserMother.randomDTO(),
+            UserMother.randomDTO(),
+            UserMother.randomDTO()
+        ]
+
+        mockUserRepo.find.mockReturnValue(users)
+
+        const result = await userService.findAll();
+
+        expect(mockUserRepo.find).toHaveBeenCalled()
+        expect(users).toEqual(result)
     });
 })

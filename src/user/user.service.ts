@@ -7,7 +7,7 @@ import { Repository } from 'typeorm';
 import { handleException } from 'src/common/handleErrors';
 import { genSaltSync, hashSync, compareSync } from "bcrypt"
 import { GeneralRole } from './entities/general_role.entity';
-import { GeneralRoles } from './enums/generalRole';
+import { GeneralRoles } from './enums/roles';
 import { validate as isUUID } from "uuid"
 import { LoginUserDto } from './dto/login-user.dto';
 import { JwtService } from '@nestjs/jwt';
@@ -35,8 +35,11 @@ export class UserService {
       })
 
       await this.userRepository.save(user)
-
-      return user;
+      const { password: _, ...userWithoutPass } = user
+      return {
+        user: userWithoutPass,
+        token: this.generateJWT({ id: user.id })
+      };
 
     } catch (error) {
       handleException(error, this.logger)
@@ -70,8 +73,9 @@ export class UserService {
     }
   }
 
-  findAll() {
-    return `This action returns all user`;
+  async findAll() {
+    const user = await this.userRepository.find()
+    return user
   }
 
   async findOne(id: string) {

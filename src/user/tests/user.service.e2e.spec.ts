@@ -11,17 +11,31 @@ import { JoiEnvValidation } from "src/config/joi.validation";
 import { INestApplication } from "@nestjs/common";
 import * as request from 'supertest';
 import { UserModule } from "../user.module";
-import { GeneralRoles } from "../enums/generalRole";
+import { GeneralRoles } from "../enums/roles";
 import { JwtService } from "@nestjs/jwt";
+import { initialData } from "src/seed/data/seed-data";
+import { SeedModule } from "src/seed/seed.module";
+import { SeedService } from "src/seed/seed.service";
 
 describe("Integrations test UserService", () => {
     // setting up the necesaries variables
-    let service: UserService;
+    let userService: UserService;
+    let seedService: SeedService;
     let repoUser: Repository<User>
     let repoGeneralRole: Repository<GeneralRole>
     let module: TestingModule;
     let app: INestApplication
     let clientRole: GeneralRole | null
+    let adminLogin: {
+        user: {
+            id: string,
+            full_name: string,
+            email: string,
+            phone: string,
+            is_active: boolean,
+            role: GeneralRole
+        }, token: string
+    } | undefined
 
 
     beforeAll(async () => {
@@ -47,34 +61,42 @@ describe("Integrations test UserService", () => {
                     dropSchema: true
                 }),
                 TypeOrmModule.forFeature([User, GeneralRole]),
-                UserModule
+                UserModule,
+                SeedModule
             ],
-            providers: [UserService, JwtService]
+            providers: [UserService, JwtService, SeedService]
         }).compile()
 
         // Preparing the services en repositories to be used on the tests
-        service = module.get<UserService>(UserService);
+        userService = module.get<UserService>(UserService);
         repoUser = module.get<Repository<User>>(getRepositoryToken(User))
         repoGeneralRole = module.get<Repository<GeneralRole>>(getRepositoryToken(GeneralRole))
+        seedService = module.get<SeedService>(SeedService)
 
         // Initializing the api
         app = module.createNestApplication()
         await app.init()
-
-        // Executing the seeders for the general roles
-        await UserMother.seedRoles(repoGeneralRole)
-
-        clientRole = await repoGeneralRole.findOneBy({ name: GeneralRoles.client })
     })
 
     // Cleaning up the data before each tests
     beforeEach(async () => {
         await repoUser.clear()
+        await seedService.executeSEED();
+        const loginResponse = await request(app.getHttpServer())
+            .post("/user/login")
+            .send({ email: initialData.user.email, password: "Jhondoe123*" });
+
+        adminLogin = loginResponse.body;
+        clientRole = await repoGeneralRole.findOneBy({ name: GeneralRoles.client })
     })
 
     // Closing the nest aplication at the end of the tests
     afterAll(async () => {
         await app.close()
+    });
+
+    afterEach(async () => {
+        jest.restoreAllMocks();
     });
 
     it("POST /user", async () => {
@@ -99,8 +121,7 @@ describe("Integrations test UserService", () => {
 
     it('POST /user/login', async () => {
         const userDTO = UserMother.dto();
-        const userCreated = await service.create(userDTO)
-        const { password, ...restuserInfo } = userCreated!
+        const userCreated = await userService.create(userDTO)
 
         const fakeToken = 'fake-jwt'
 
@@ -113,7 +134,7 @@ describe("Integrations test UserService", () => {
         expect(response.body).toMatchObject(
             {
                 user: {
-                    ...restuserInfo,
+                    ...userCreated,
                     role: {
                         id: clientRole?.id,
                         name: clientRole?.name
@@ -123,4 +144,17 @@ describe("Integrations test UserService", () => {
             }
         )
     });
+
+
+    it("GET /user", async () => {
+        await UserMother.createManyUsers(userService, 2);
+
+        const response = await request(app.getHttpServer())
+            .get("/user")
+            .set('Authorization', `Bearer ${adminLogin?.token}`);
+
+        expect(response.status).toBe(200)
+        expect(response.body.length).toBe(3)
+    })
+
 })
