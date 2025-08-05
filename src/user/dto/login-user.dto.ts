@@ -8,7 +8,6 @@ export class LoginUserDto {
         description: "Username"
     })
     @IsString()
-    @IsEmail()
     username: string;
     
     @ApiProperty({

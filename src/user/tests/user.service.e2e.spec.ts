@@ -136,18 +136,18 @@ describe("Integrations test UserService", () => {
 
         expect(response.status).toBe(200)
         expect(response.body).toMatchObject(
-           {
-            user: {
-                full_name: userDTO.full_name,
-                email: userDTO.email,
-                phone: userDTO.phone,
-                role: {
-                    id: clientRole?.id,
-                    name: clientRole?.name
-                }
-            },
-            token: fakeToken
-           }
+            {
+                user: {
+                    full_name: userDTO.full_name,
+                    email: userDTO.email,
+                    phone: userDTO.phone,
+                    role: {
+                        id: clientRole?.id,
+                        name: clientRole?.name
+                    }
+                },
+                token: fakeToken
+            }
 
         )
     });
@@ -174,6 +174,28 @@ describe("Integrations test UserService", () => {
 
         expect(response.status).toBe(200)
         expect(response.body).toMatchObject(adminLogin?.user!)
+    })
+
+    it("UPDATE /user", async () => {
+        const [{ user, token }] = await UserMother.createManyUsers(userService, 1);
+        const dtoUpdate = { full_name: "jhonsito doe" }
+        const response = await request(app.getHttpServer())
+            .patch(`/user/${user.id}`)
+            .set('Authorization', `Bearer ${token}`)
+            .send(dtoUpdate)
+
+        expect(response.status).toBe(200)
+        expect(response.body).toMatchObject(
+            {
+                full_name: dtoUpdate.full_name,
+                email: user.email,
+                phone: user.phone,
+                role: {
+                    id: clientRole?.id,
+                    name: clientRole?.name
+                },
+            }
+        )
     })
 
 })

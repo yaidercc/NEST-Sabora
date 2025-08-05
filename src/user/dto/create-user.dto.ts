@@ -1,5 +1,5 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { IsBoolean, IsEmail, IsOptional, IsPhoneNumber, IsString, IsUUID, Matches, MaxLength, MinLength } from "class-validator";
+import { IsEmail, IsNotEmpty, IsPhoneNumber, IsString, Matches, MaxLength, MinLength, ValidateIf } from "class-validator";
 
 export class CreateUserDto {
 
@@ -7,22 +7,28 @@ export class CreateUserDto {
         example: "Jhon Doe",
         description: "User fullname"
     })
+    @ValidateIf((value) => value !== null && value !== undefined )
     @IsString()
+    @IsNotEmpty({ message: 'full_name must not be empty' })
     full_name: string;
 
     @ApiProperty({
         example: "JhonDoe",
         description: "Username"
     })
+    @ValidateIf((value) => value !== null && value !== undefined )
     @IsString()
-    username: string;
+    @IsNotEmpty({ message: 'username must not be empty' })
+    username: string; 
 
     @ApiProperty({
         example: "user@gmail.com",
         description: "User email"
     })
+    @ValidateIf((value) => value !== null && value !== undefined )
     @IsString()
     @IsEmail()
+    @IsNotEmpty({ message: 'email must not be empty' })
     email: string;
     @ApiProperty({
         example: "user123",
@@ -41,8 +47,10 @@ export class CreateUserDto {
         example: "57356251432",
         description: "User phone"
     })
+    @ValidateIf((value) => value !== null && value !== undefined )
     @IsString()
     @IsPhoneNumber("CO")
+    @IsNotEmpty({ message: 'phone must not be empty' })
     phone: string;
 
 }

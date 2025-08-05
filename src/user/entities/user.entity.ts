@@ -26,7 +26,7 @@ export class User {
         description: "Username"
     })
     @Index()
-    @Column("text")
+    @Column("text",{unique:true})
     username: string;
 
     @ApiProperty({
@@ -34,7 +34,7 @@ export class User {
         description: "User email"
     })
     @Index()
-    @Column("text", { unique: true })
+    @Column("text")
     email: string;
 
     @ApiProperty({

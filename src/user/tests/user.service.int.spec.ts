@@ -82,9 +82,9 @@ describe("Integrations test UserService", () => {
         const userCreated = await userService.create(userDTO)
 
 
-        const result = await userService.login({ username: userDTO.username, password: userDTO.password });
+        const response = await userService.login({ username: userDTO.username, password: userDTO.password });
 
-        expect(result).toMatchObject(userCreated!)
+        expect(response).toMatchObject(userCreated!)
     });
 
 
@@ -93,5 +93,18 @@ describe("Integrations test UserService", () => {
         const response = await userService.findAll();
 
         expect(response.length).toBe(2)
+    });
+
+    it('should update an user', async () => {
+        const userDTO = UserMother.dto();
+        const dtoUpdate = { full_name: "jhonsito doe" }
+
+        const userCreated = await userService.create(userDTO)
+
+        const response = await userService.update(userCreated?.user.id!, dtoUpdate);
+
+        expect(response).toMatchObject({ ...userCreated?.user!, ...dtoUpdate })
+
+
     });
 })

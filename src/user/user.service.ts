@@ -92,13 +92,37 @@ export class UserService {
 
     }
 
-    if(!user) throw new NotFoundException("User not found")
+    if (!user) throw new NotFoundException("User not found")
 
     return user
   }
 
-  update(id: number, updateUserDto: UpdateUserDto) {
+  async update(id: string, updateUserDto: UpdateUserDto) {
+
+    if (!updateUserDto || typeof updateUserDto !== 'object') {
+      throw new BadRequestException("No data provided to update");
+    }
+
+    const { password = null, ...toUpdate } = updateUserDto
+
+    const user = await this.userRepository.preload({
+      id,
+      ...toUpdate
+    })
+
+    if (!user) throw new NotFoundException("User not found")
+
+    try {
+      await this.userRepository.save(user)
+      return await this.findOne(id)
+    } catch (error) {
+      handleException(error, this.logger)
+    }
     return `This action updates a #${id} user`;
+  }
+
+  private isEmpty(){
+
   }
 
   remove(id: number) {

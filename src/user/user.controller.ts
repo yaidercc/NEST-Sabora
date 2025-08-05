@@ -60,8 +60,13 @@ export class UserController {
   }
 
   @Get("profile")
+  @ApiResponse({
+    status: 200,
+    description: "User",
+    type: User
+  })
   @Auth()
-  profile(@GetUser() user){
+  profile(@GetUser() user) {
     return user
   }
 
@@ -72,11 +77,12 @@ export class UserController {
   }
 
   @Patch(':id')
+  @Auth([], { allowAdmin: true })
   update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
     return this.userService.update(id, updateUserDto);
   }
 
-  
+
   @Delete(':id')
   remove(@Param('id') id: string) {
     return this.userService.remove(+id);

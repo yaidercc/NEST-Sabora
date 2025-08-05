@@ -23,7 +23,9 @@ describe("Unit UserServices tests", () => {
             leftJoinAndSelect: jest.fn().mockReturnThis(),
             getOne: jest.fn().mockResolvedValue({ id: userId, ...UserMother.dto(), password: hashSync(UserMother.dto().password, genSaltSync()) }),
         }),
-        find: jest.fn()
+        find: jest.fn(),
+        findOneBy: jest.fn(),
+        preload: jest.fn()
     }
 
     const mockRoleRepo = {
@@ -63,20 +65,20 @@ describe("Unit UserServices tests", () => {
 
     it('should create an user', async () => {
         const userDTO = UserMother.dto()
-        const createdUser = { ...userDTO, id: userId }
-        const { password, ...restInfoUser } = createdUser
+        const user = { ...userDTO, id: userId }
+        const { password, ...restInfoUser } = user
         const fakeToken = 'fake-jwt';
-        
+
         jest.spyOn(JwtService.prototype, "sign").mockReturnValue(fakeToken)
 
-        mockUserRepo.create.mockReturnValue(createdUser)
-        mockUserRepo.save.mockReturnValue(createdUser)
+        mockUserRepo.create.mockReturnValue(user)
+        mockUserRepo.save.mockReturnValue(user)
 
-        const result = await userService.create(userDTO);
+        const response = await userService.create(userDTO);
 
         expect(mockUserRepo.create).toHaveBeenCalled()
         expect(mockUserRepo.save).toHaveBeenCalled()
-        expect(result).toEqual({
+        expect(response).toEqual({
             user: {
                 ...restInfoUser,
             },
@@ -87,16 +89,16 @@ describe("Unit UserServices tests", () => {
 
     it('should login an user', async () => {
         const userDTO = UserMother.dto()
-        const createdUser = { id: userId, ...userDTO }
-        const { password, ...restInfoUser } = createdUser
+        const user = { id: userId, ...userDTO }
+        const { password, ...restInfoUser } = user
 
         const fakeToken = 'fake-jwt';
         jest.spyOn(JwtService.prototype, "sign").mockReturnValue(fakeToken)
 
-        const result = await userService.login({ username: userDTO.username, password: userDTO.password });
+        const response = await userService.login({ username: userDTO.username, password: userDTO.password });
 
         expect(mockUserRepo.createQueryBuilder).toHaveBeenCalled()
-        expect(result).toMatchObject({
+        expect(response).toMatchObject({
             user: { ...restInfoUser, id: userId },
             token: fakeToken
         })
@@ -111,9 +113,24 @@ describe("Unit UserServices tests", () => {
 
         mockUserRepo.find.mockReturnValue(users)
 
-        const result = await userService.findAll();
+        const response = await userService.findAll();
 
         expect(mockUserRepo.find).toHaveBeenCalled()
-        expect(users).toEqual(result)
+        expect(users).toEqual(response)
+    });
+
+    it('should update an user', async () => {
+        const originalUser = { id: userId, ...UserMother.dto() }
+        const dtoUpdate = { full_name: "jhonsito doe" }
+        const updatedUser = { ...originalUser, ...dtoUpdate }
+
+        mockUserRepo.preload.mockReturnValue(updatedUser)
+        mockUserRepo.save.mockReturnValue(updatedUser)
+        mockUserRepo.findOneBy.mockReturnValue(updatedUser)
+
+        const response = await userService.update(userId, dtoUpdate)
+        expect( mockUserRepo.preload).toHaveBeenCalled()
+        expect( mockUserRepo.save).toHaveBeenCalled()
+        expect(response).toMatchObject(updatedUser)
     });
 })
