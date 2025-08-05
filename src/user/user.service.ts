@@ -12,6 +12,10 @@ import { validate as isUUID } from "uuid"
 import { LoginUserDto } from './dto/login-user.dto';
 import { JwtService } from '@nestjs/jwt';
 import { JwtPayload } from './interfaces/jwtInterface';
+import * as sgMail from '@sendgrid/mail'; // sgMail library to send mails with http instead of smtp
+import { ConfigService } from '@nestjs/config';
+import { SendEmailDTO } from './dto/reset.password.dto';
+
 
 @Injectable()
 export class UserService {
@@ -22,7 +26,11 @@ export class UserService {
     @InjectRepository(GeneralRole)
     private readonly generalRoleRepository: Repository<GeneralRole>,
     private readonly jwtService: JwtService,
-  ) { }
+    private readonly configService: ConfigService
+
+  ) {
+    sgMail.setApiKey(this.configService.get("SENDGRID_API_KEY")!)
+  }
 
   async create(createUserDto: CreateUserDto) {
     const { password, ...restInfo } = createUserDto
@@ -70,6 +78,29 @@ export class UserService {
 
     } catch (error) {
       handleException(error, this.logger)
+    }
+  }
+
+  async sendMailResetPassword(sendEmailDTO: SendEmailDTO) {
+    const {email } = sendEmailDTO
+    const user = await this.userRepository.findOneBy({email:email});
+    if(!user) throw new NotFoundException(`User with email: ${email} not found`)
+
+    try {
+      await sgMail.send({
+        to: user.email,
+        from: 'app.sabora.rest@gmail.com',
+        subject: 'Recuperación de contraseña',
+        templateId: this.configService.get("SENDGRID_TEMPLATE")!,
+        dynamicTemplateData: {
+          full_name: user.full_name,
+          resetLink: this.configService.get("RESET_PASSWORD_URL")!,
+        },
+      });
+
+      return "Email sended"
+    } catch (error) {
+      console.error('Error al enviar el correo:', error);
     }
   }
 
@@ -121,7 +152,7 @@ export class UserService {
     return `This action updates a #${id} user`;
   }
 
-  private isEmpty(){
+  private isEmpty() {
 
   }
 
