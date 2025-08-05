@@ -5,6 +5,7 @@ import { JoiEnvValidation } from './config/joi.validation';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { UserModule } from './user/user.module';
 import { SeedModule } from './seed/seed.module';
+import { MailerModule } from "@nestjs-modules/mailer"
 
 @Module({
   imports: [
@@ -21,6 +22,21 @@ import { SeedModule } from './seed/seed.module';
       password: process.env.DB_PASSWORD,
       autoLoadEntities: true,
       synchronize: true
+    }),
+
+
+    MailerModule.forRoot({
+      transport: {
+        host: 'smtp.sendgrid.net',
+        port: 587,
+        auth: {
+          user: 'apikey',
+          pass: process.env.SENDGRID_API_KEY,
+        },
+      },
+      defaults: {
+        from: '"Sabora 🍽️" <app.sabora.rest@gmail.com>',
+      },
     }),
     UserModule,
     SeedModule

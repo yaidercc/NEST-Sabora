@@ -10,6 +10,7 @@ import { LoginUserDto } from './dto/login-user.dto';
 import { UserLogin } from './interfaces/userResponses';
 import { GeneralRole } from './entities/general_role.entity';
 import { GeneralRoles } from './enums/roles';
+import { SendEmailDTO } from './dto/reset.password.dto';
 
 @Controller('user')
 export class UserController {
@@ -57,6 +58,12 @@ export class UserController {
   @Auth([GeneralRoles.admin], { allowAdmin: true })
   findAll() {
     return this.userService.findAll();
+  }
+
+  @Post("sendEmail")
+  @HttpCode(200)
+  sendEmailToResetPassword(@Body() sendEmailDTO: SendEmailDTO) {
+    return this.userService.sendMailResetPassword(sendEmailDTO)
   }
 
   @Get("profile")
