@@ -164,4 +164,16 @@ describe("Integrations test UserService", () => {
         expect(response.body.length).toBe(3)
     })
 
+
+    it("GET /user/profile", async () => {
+        await UserMother.createManyUsers(userService, 2);
+
+        const response = await request(app.getHttpServer())
+            .get("/user/profile")
+            .set('Authorization', `Bearer ${adminLogin?.token}`);
+
+        expect(response.status).toBe(200)
+        expect(response.body).toMatchObject(adminLogin?.user!)
+    })
+
 })

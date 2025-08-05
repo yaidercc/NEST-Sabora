@@ -6,10 +6,21 @@ import { RoleProtected } from './role-protected.decorator';
 import { AllowOwnerOrAdmin, OwnerAminOptions } from './owner-protected.decorator';
 import { IsOwnerOrAdminGuard } from '../guards/is-owner-or-admin/is-owner-or-admin.guard';
 
-export function Auth(roles: GeneralRoles[], options: OwnerAminOptions) {
-  return applyDecorators(
-    RoleProtected(...roles), // Define which roles are necesary for the route we are accesing
-    AllowOwnerOrAdmin(options),
-    UseGuards(AuthGuard(), UserRoleGuard, IsOwnerOrAdminGuard)
-  );
+export function Auth(roles?: GeneralRoles[], options?: OwnerAminOptions) {
+  const decorators = [
+    UseGuards(AuthGuard()),
+
+  ];
+
+  if (roles && roles.length > 0) {
+    decorators.unshift(RoleProtected(...roles));
+    decorators.push(UseGuards(UserRoleGuard));
+  }
+
+  if (options) {
+    decorators.unshift(AllowOwnerOrAdmin(options));
+    decorators.push(UseGuards(IsOwnerOrAdminGuard));
+  }
+
+  return applyDecorators(...decorators);
 }

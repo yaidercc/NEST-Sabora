@@ -15,6 +15,8 @@ export class IsOwnerOrAdminGuard implements CanActivate {
     const req = context.switchToHttp().getRequest();
     const user = req.user
     const id = req.params.id;
+    
+    if(!allowAdmin) return true
 
     if (user.role.name === GeneralRoles.admin) {
       if (allowAdmin) return true
@@ -23,6 +25,6 @@ export class IsOwnerOrAdminGuard implements CanActivate {
       return true
     }
 
-    throw new ForbiddenException(`You don´t have the permission to perform this action`)
+    throw new ForbiddenException(`You don´t have the permission to perform this action11`)
   }
 }

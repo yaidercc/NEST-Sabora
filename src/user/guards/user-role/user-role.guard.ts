@@ -13,7 +13,6 @@ export class UserRoleGuard implements CanActivate {
   ): boolean | Promise<boolean> | Observable<boolean> {
     // Collect the roles sended through metadata
     const validRoles: string[] = this.reflector.get(META_ROLES, context.getHandler())
-
     if (!validRoles) return true
     if (validRoles.length === 0) return true
 
@@ -27,6 +26,6 @@ export class UserRoleGuard implements CanActivate {
       return true
     }
 
-    throw new ForbiddenException(`You don´t have the permission to perform this action`)
+    throw new ForbiddenException(`You don´t have the permission to perform this action222`)
   }
 }
