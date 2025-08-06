@@ -11,6 +11,7 @@ import { UserModule } from "../user.module";
 import { JoiEnvValidation } from "src/config/joi.validation";
 import { EnvConfiguration } from "src/config/env.config";
 import { ConfigModule } from "@nestjs/config";
+import { compareSync } from "bcrypt";
 
 describe("Integrations test UserService", () => {
     let userService: UserService;
@@ -104,6 +105,63 @@ describe("Integrations test UserService", () => {
         const response = await userService.update(userCreated?.user.id!, dtoUpdate);
 
         expect(response).toMatchObject({ ...userCreated?.user!, ...dtoUpdate })
+
+
+    });
+
+
+    it('should set a temporal password and send it to the user mail', async () => {
+        const userDTO = UserMother.dto();
+        const userCreated = await userService.create(userDTO)
+
+        const userBeforeCange = await userRepository
+            .createQueryBuilder("user")
+            .addSelect("user.password")
+            .where("user.id = :id", { id: userCreated?.user.id })
+            .getOne();
+
+        await userService.requestTempPassword({
+            email: userDTO.email,
+            username: userDTO.username
+        })
+        const userAfterChange = await userRepository
+            .createQueryBuilder("user")
+            .addSelect("user.password")
+            .where("user.id = :id", { id: userCreated?.user.id })
+            .getOne();
+
+        expect(userBeforeCange?.password).not.toBe(userAfterChange?.password)
+        expect(userAfterChange?.is_temporal_password).toBe(true)
+
+    });
+
+
+    it('should update an user password', async () => {
+        const userDTO = UserMother.dto();
+        const userCreated = await userService.create(userDTO)
+
+        const userBeforeCange = await userRepository
+            .createQueryBuilder("user")
+            .addSelect("user.password")
+            .where("user.id = :id", { id: userCreated?.user.id })
+            .getOne();
+
+        await userService.changePassword({
+            password: "Yaidercc123*",
+            repeatPassword: "Yaidercc123*"
+        },
+            userCreated?.user as User
+        )
+        const userAfterChange = await userRepository
+            .createQueryBuilder("user")
+            .addSelect("user.password")
+            .where("user.id = :id", { id: userCreated?.user.id })
+            .getOne();
+
+        expect(userBeforeCange?.password).not.toBe(userAfterChange?.password)
+        expect(userAfterChange?.is_temporal_password).toBe(false)
+        expect(compareSync("Yaidercc123*", userAfterChange?.password!)).toBeTruthy()
+
 
 
     });

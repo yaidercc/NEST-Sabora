@@ -10,7 +10,7 @@ import { LoginUserDto } from './dto/login-user.dto';
 import { UserLogin } from './interfaces/userResponses';
 import { GeneralRole } from './entities/general_role.entity';
 import { GeneralRoles } from './enums/roles';
-import { SendEmailDTO } from './dto/reset.password.dto';
+import { NewPassword, RequestTempPasswordDto } from './dto/reset.password.dto';
 
 @Controller('user')
 export class UserController {
@@ -60,11 +60,22 @@ export class UserController {
     return this.userService.findAll();
   }
 
-  @Post("sendEmail")
+  @Post("request-temp-password")
   @HttpCode(200)
-  sendEmailToResetPassword(@Body() sendEmailDTO: SendEmailDTO) {
-    return this.userService.sendMailResetPassword(sendEmailDTO)
+  sendEmailToResetPassword(@Body() requestTempPasswordDto: RequestTempPasswordDto) {
+    return this.userService.requestTempPassword(requestTempPasswordDto)
   }
+
+  @Post("change-password")
+  @HttpCode(200)
+  @Auth()
+  changePassword(
+    @Body() newPassword: NewPassword,
+    @GetUser() user: User
+  ) {
+    return this.userService.changePassword(newPassword, user)
+  }
+
 
   @Get("profile")
   @ApiResponse({

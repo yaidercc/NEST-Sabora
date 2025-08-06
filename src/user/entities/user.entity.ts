@@ -62,6 +62,11 @@ export class User {
     })
     is_active: boolean;
 
+     @Column("boolean", {
+        default: false
+    })
+    is_temporal_password: boolean;
+
     @ManyToOne(() => GeneralRole, role => role.user, { eager: true })
     role: GeneralRole;
 

@@ -6,35 +6,19 @@ import { User } from "../entities/user.entity";
 import { UserMother } from "./userMother";
 import { GeneralRole } from "../entities/general_role.entity";
 import { JwtModule, JwtService } from "@nestjs/jwt";
-import { genSaltSync, hashSync } from "bcrypt";
+import { ConfigService } from "@nestjs/config";
+import { mockConfigService, mockRoleRepo, mockUserRepo, userId } from "./mocks/user.mocks";
+import * as sgMail from '@sendgrid/mail';
+
+jest.mock('@sendgrid/mail', () => ({
+    setApiKey: jest.fn(),
+    send: jest.fn().mockResolvedValue([{ statusCode: 202 }]), // It simulates that the mail had sended successfuly
+}));
 
 describe("Unit UserServices tests", () => {
     let userService: UserService;
     let userRepository: Repository<User>
     let generalRoleRepository: Repository<GeneralRole>
-    const userId = "484918ef-abc6-43a6-a26f-44bffe9a1ff8"
-
-    const mockUserRepo = {
-        create: jest.fn(),
-        save: jest.fn(),
-        createQueryBuilder: jest.fn().mockReturnValue({
-            where: jest.fn().mockReturnThis(),
-            addSelect: jest.fn().mockReturnThis(),
-            leftJoinAndSelect: jest.fn().mockReturnThis(),
-            getOne: jest.fn().mockResolvedValue({ id: userId, ...UserMother.dto(), password: hashSync(UserMother.dto().password, genSaltSync()) }),
-        }),
-        find: jest.fn(),
-        findOneBy: jest.fn(),
-        preload: jest.fn()
-    }
-
-    const mockRoleRepo = {
-        createQueryBuilder: jest.fn().mockReturnValue({
-            where: jest.fn().mockReturnThis(),
-            getOne: jest.fn().mockResolvedValue({ id: '1', name: 'admin' }),
-        }),
-        findOneBy: jest.fn().mockResolvedValue({ id: '1', name: 'client' }),
-    }
 
     beforeAll(async () => {
         const module: TestingModule = await Test.createTestingModule({
@@ -53,6 +37,10 @@ describe("Unit UserServices tests", () => {
                 {
                     provide: getRepositoryToken(GeneralRole),
                     useValue: mockRoleRepo
+                },
+                {
+                    provide: ConfigService,
+                    useValue: mockConfigService
                 }
             ]
         }).compile()
@@ -62,6 +50,7 @@ describe("Unit UserServices tests", () => {
         generalRoleRepository = module.get<Repository<GeneralRole>>(getRepositoryToken(GeneralRole))
 
     })
+
 
     it('should create an user', async () => {
         const userDTO = UserMother.dto()
@@ -129,8 +118,44 @@ describe("Unit UserServices tests", () => {
         mockUserRepo.findOneBy.mockReturnValue(updatedUser)
 
         const response = await userService.update(userId, dtoUpdate)
-        expect( mockUserRepo.preload).toHaveBeenCalled()
-        expect( mockUserRepo.save).toHaveBeenCalled()
+        expect(mockUserRepo.preload).toHaveBeenCalled()
+        expect(mockUserRepo.save).toHaveBeenCalled()
         expect(response).toMatchObject(updatedUser)
     });
+
+    it('should set a temporal password and send it to the user mail', async () => {
+        const originalUser = { id: userId, ...UserMother.dto() }
+
+        await userService.requestTempPassword({
+            email: originalUser.email,
+            username: originalUser.username
+        })
+
+        expect(sgMail.send).toHaveBeenCalled()
+        expect(mockUserRepo.save).toHaveBeenCalled()
+        expect(mockUserRepo.findOneBy).toHaveBeenCalledWith({
+            email: originalUser.email,
+            username: originalUser.username
+        })
+
+    });
+
+
+    it('should update a user password', async () => {
+        const [userCreated] = await UserMother.createManyUsers(userService, 1);
+        const user = userCreated.user as User;
+
+        await userService.changePassword(
+            {
+                password: "Password123*",
+                repeatPassword: "Password123*"
+            },
+            user
+        );
+
+        expect(mockUserRepo.preload).toHaveBeenCalledWith(user);
+        expect(mockUserRepo.save).toHaveBeenCalled();
+        
+    });
+
 })

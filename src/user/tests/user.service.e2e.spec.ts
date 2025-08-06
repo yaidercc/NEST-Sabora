@@ -16,12 +16,13 @@ import { JwtService } from "@nestjs/jwt";
 import { initialData } from "src/seed/data/seed-data";
 import { SeedModule } from "src/seed/seed.module";
 import { SeedService } from "src/seed/seed.service";
+import { compareSync } from "bcrypt";
 
 describe("Integrations test UserService", () => {
     // setting up the necesaries variables
     let userService: UserService;
     let seedService: SeedService;
-    let repoUser: Repository<User>
+    let userRepository: Repository<User>
     let repoGeneralRole: Repository<GeneralRole>
     let module: TestingModule;
     let app: INestApplication
@@ -69,7 +70,7 @@ describe("Integrations test UserService", () => {
 
         // Preparing the services en repositories to be used on the tests
         userService = module.get<UserService>(UserService);
-        repoUser = module.get<Repository<User>>(getRepositoryToken(User))
+        userRepository = module.get<Repository<User>>(getRepositoryToken(User))
         repoGeneralRole = module.get<Repository<GeneralRole>>(getRepositoryToken(GeneralRole))
         seedService = module.get<SeedService>(SeedService)
 
@@ -80,7 +81,7 @@ describe("Integrations test UserService", () => {
 
     // Cleaning up the data before each tests
     beforeEach(async () => {
-        await repoUser.clear()
+        await userRepository.clear()
         await seedService.executeSEED();
         const loginResponse = await request(app.getHttpServer())
             .post("/user/login")
@@ -197,5 +198,65 @@ describe("Integrations test UserService", () => {
             }
         )
     })
+
+
+
+    it('POST /user/request-temp-password', async () => {
+        const [{ user, token }] = await UserMother.createManyUsers(userService, 1)
+
+
+        const userBeforeCange = await userRepository
+            .createQueryBuilder("user")
+            .addSelect("user.password")
+            .where("user.id = :id", { id: user.id })
+            .getOne();
+
+        await request(app.getHttpServer())
+            .post("/user/request-temp-password")
+            .send({
+                email: user.email,
+                username: user.username,
+            })
+
+        const userAfterChange = await userRepository
+            .createQueryBuilder("user")
+            .addSelect("user.password")
+            .where("user.id = :id", { id: user.id })
+            .getOne();
+
+        expect(userBeforeCange?.password).not.toBe(userAfterChange?.password)
+        expect(userAfterChange?.is_temporal_password).toBe(true)
+    });
+
+
+    it('POST /user/change-password', async () => {
+        const [{ user, token }] = await UserMother.createManyUsers(userService, 1);
+
+
+        const userBeforeCange = await userRepository
+            .createQueryBuilder("user")
+            .addSelect("user.password")
+            .where("user.id = :id", { id: user.id })
+            .getOne();
+
+        await request(app.getHttpServer())
+            .post("/user/change-password")
+            .set('Authorization', `Bearer ${token}`)
+            .send({
+                password: "Yaidercc123*",
+                repeatPassword: "Yaidercc123*"
+            })
+
+        const userAfterChange = await userRepository
+            .createQueryBuilder("user")
+            .addSelect("user.password")
+            .where("user.id = :id", { id: user.id })
+            .getOne();
+
+        expect(userBeforeCange?.password).not.toBe(userAfterChange?.password)
+        expect(userAfterChange?.is_temporal_password).toBe(false)
+        expect(compareSync("Yaidercc123*", userAfterChange?.password!)).toBeTruthy()
+
+    });
 
 })

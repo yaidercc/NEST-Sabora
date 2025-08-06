@@ -14,7 +14,7 @@ import { JwtService } from '@nestjs/jwt';
 import { JwtPayload } from './interfaces/jwtInterface';
 import * as sgMail from '@sendgrid/mail'; // sgMail library to send mails with http instead of smtp
 import { ConfigService } from '@nestjs/config';
-import { SendEmailDTO } from './dto/reset.password.dto';
+import { NewPassword, RequestTempPasswordDto } from './dto/reset.password.dto';
 
 
 @Injectable()
@@ -81,28 +81,60 @@ export class UserService {
     }
   }
 
-  async sendMailResetPassword(sendEmailDTO: SendEmailDTO) {
-    const {email } = sendEmailDTO
-    const user = await this.userRepository.findOneBy({email:email});
-    if(!user) throw new NotFoundException(`User with email: ${email} not found`)
-
+  async requestTempPassword(requestTempPasswordDto: RequestTempPasswordDto) {
     try {
+      const { email, username } = requestTempPasswordDto
+
+      const user = await this.userRepository.findOneBy({ email, username })
+
+      if (!user) {
+        throw new NotFoundException(`User not found with the specified data.`)
+      }
+
+      const tempPassword = this.generateTempPassword()
+      user.password = hashSync(tempPassword, genSaltSync());
+      user.is_temporal_password = true;
+
+      await this.userRepository.save(user)
+
       await sgMail.send({
         to: user.email,
-        from: 'app.sabora.rest@gmail.com',
-        subject: 'Recuperación de contraseña',
+        from: this.configService.get("SABORA_EMAIL")!,
+        subject: 'Temporal password',
         templateId: this.configService.get("SENDGRID_TEMPLATE")!,
         dynamicTemplateData: {
-          full_name: user.full_name,
-          resetLink: this.configService.get("RESET_PASSWORD_URL")!,
+          password: tempPassword
         },
       });
 
-      return "Email sended"
+      return 'If the user exists, a temporary password has been sent to your email.'
     } catch (error) {
-      console.error('Error al enviar el correo:', error);
+      handleException(error, this.logger)
     }
   }
+
+  async changePassword(newPassword: NewPassword, user: User) {
+    try {
+      const { password, repeatPassword } = newPassword
+      if (password !== repeatPassword) {
+        throw new BadRequestException("Passwords do not match")
+      }
+
+      const bdUser = await this.userRepository.preload(user)
+
+      if (!bdUser) throw new NotFoundException("User not found")
+
+      bdUser.password = hashSync(password, genSaltSync());
+      bdUser.is_temporal_password = false
+
+      await this.userRepository.save(bdUser)
+      return "password changed"
+    } catch (error) {
+      handleException(error, this.logger)
+    }
+
+  }
+
 
   async findAll() {
     const user = await this.userRepository.find()
@@ -111,21 +143,24 @@ export class UserService {
 
   async findOne(term: string) {
     let user: User | null = null;
+    try {
+      if (isUUID(term)) user = await this.userRepository.findOneBy({ id: term })
+      else {
+        const queryBuilder = this.userRepository.createQueryBuilder("user");
+        user = await queryBuilder
+          .leftJoinAndSelect("user.role", "role")
+          .where("email=:term or phone=:term or full_name=:term", {
+            term: term.toLowerCase(),
+          }).getOne()
 
-    if (isUUID(term)) user = await this.userRepository.findOneBy({ id: term })
-    else {
-      const queryBuilder = this.userRepository.createQueryBuilder("user");
-      user = await queryBuilder
-        .leftJoinAndSelect("user.role", "role")
-        .where("email=:term or phone=:term or full_name=:term", {
-          term: term.toLowerCase(),
-        }).getOne()
+      }
 
+      if (!user) throw new NotFoundException("User not found")
+
+      return user
+    } catch (error) {
+      handleException(error, this.logger)
     }
-
-    if (!user) throw new NotFoundException("User not found")
-
-    return user
   }
 
   async update(id: string, updateUserDto: UpdateUserDto) {
@@ -149,12 +184,8 @@ export class UserService {
     } catch (error) {
       handleException(error, this.logger)
     }
-    return `This action updates a #${id} user`;
   }
 
-  private isEmpty() {
-
-  }
 
   remove(id: number) {
     return `This action removes a #${id} user`;
@@ -182,5 +213,27 @@ export class UserService {
     }
 
     return role
+  }
+
+
+  private generateTempPassword(length: number = 12) {
+    let password: string = "";
+    const upper = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+    const lower = "abcdefghijklmnopqrstuvwxyz"
+    const numbers = "0123456789"
+    const symbols = "!@#$%^&*()-_=+[]{};:,.<>?"
+    const all = upper + lower + numbers + symbols;
+    const getRandom = (char: string) => char[Math.floor(Math.random() * char.length)];
+
+    password += getRandom(upper)
+    password += getRandom(lower)
+    password += getRandom(numbers)
+    password += getRandom(symbols)
+
+    for (let i = 3; i < length; i++) {
+      password += getRandom(all);
+    }
+
+    return password;
   }
 }
