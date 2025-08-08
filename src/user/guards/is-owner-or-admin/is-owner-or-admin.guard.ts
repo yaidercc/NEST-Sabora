@@ -16,7 +16,7 @@ export class IsOwnerOrAdminGuard implements CanActivate {
     const user = req.user
     const id = req.params.id;
 
-    if(!allowAdmin) return true
+    if(!allowAdmin && user.role.name !== GeneralRoles.admin) return true
 
     if (user.role.name === GeneralRoles.admin) {
       if (allowAdmin) return true

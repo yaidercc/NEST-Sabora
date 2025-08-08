@@ -259,4 +259,20 @@ describe("Integrations test UserService", () => {
 
     });
 
+
+    it('DELETE /user', async () => {
+        const [{ user }] = await UserMother.createManyUsers(userService, 1)
+        await request(app.getHttpServer())
+            .delete(`/user/${user.id}`)
+            .set('Authorization', `Bearer ${adminLogin?.token}`)
+
+        const userAfterChange = await userRepository
+            .createQueryBuilder("user")
+            .select("user.is_active")
+            .where("user.id = :id", { id: user.id })
+            .getRawOne()
+
+        expect(userAfterChange.is_active).toBeFalsy()
+    });
+
 })

@@ -13,7 +13,9 @@ export const mockUserRepo = {
     }),
     find: jest.fn(),
     findOneBy: jest.fn(),
-    preload: jest.fn()
+    findOne: jest.fn(),
+    preload: jest.fn(),
+    update: jest.fn()
 }
 
 export const mockRoleRepo = {

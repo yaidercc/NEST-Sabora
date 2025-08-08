@@ -13,6 +13,12 @@ import { EnvConfiguration } from "src/config/env.config";
 import { ConfigModule } from "@nestjs/config";
 import { compareSync } from "bcrypt";
 
+
+jest.mock('@sendgrid/mail', () => ({
+    setApiKey: jest.fn(),
+    send: jest.fn().mockResolvedValue([{ statusCode: 202 }]), // It simulates that the mail had sended successfuly
+}));
+
 describe("Integrations test UserService", () => {
     let userService: UserService;
     let userRepository: Repository<User>
@@ -162,7 +168,21 @@ describe("Integrations test UserService", () => {
         expect(userAfterChange?.is_temporal_password).toBe(false)
         expect(compareSync("Yaidercc123*", userAfterChange?.password!)).toBeTruthy()
 
+    });
 
+    it('should delete an user', async () => {
+        const userDTO = UserMother.dto();
+        const userCreated = await userService.create(userDTO)
+
+        await userService.remove(userCreated?.user.id!)
+
+        const userAfterChange = await userRepository
+            .createQueryBuilder("user")
+            .addSelect("user.password")
+            .where("user.id = :id", { id: userCreated?.user.id })
+            .getOne();
+
+        expect(userAfterChange?.is_active).toBeFalsy()
 
     });
 })

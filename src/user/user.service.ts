@@ -14,11 +14,7 @@ import { JwtService } from '@nestjs/jwt';
 import { JwtPayload } from './interfaces/jwtInterface';
 import * as sgMail from '@sendgrid/mail'; // sgMail library to send mails with http instead of smtp
 import { ConfigService } from '@nestjs/config';
-<<<<<<< HEAD
 import { NewPassword, RequestTempPasswordDto } from './dto/reset.password.dto';
-=======
-import { SendEmailDTO } from './dto/reset.password.dto';
->>>>>>> 9258f2896d7f9606955efaa408feb8fabbeaa865
 
 
 @Injectable()
@@ -85,7 +81,6 @@ export class UserService {
     }
   }
 
-<<<<<<< HEAD
   async requestTempPassword(requestTempPasswordDto: RequestTempPasswordDto) {
     try {
       const { email, username } = requestTempPasswordDto
@@ -128,6 +123,8 @@ export class UserService {
       const bdUser = await this.userRepository.preload(user)
 
       if (!bdUser) throw new NotFoundException("User not found")
+      const { id } = user
+      await this.isUserActive(id);
 
       bdUser.password = hashSync(password, genSaltSync());
       bdUser.is_temporal_password = false
@@ -137,35 +134,9 @@ export class UserService {
     } catch (error) {
       handleException(error, this.logger)
     }
-
   }
 
 
-=======
-  async sendMailResetPassword(sendEmailDTO: SendEmailDTO) {
-    const {email } = sendEmailDTO
-    const user = await this.userRepository.findOneBy({email:email});
-    if(!user) throw new NotFoundException(`User with email: ${email} not found`)
-
-    try {
-      await sgMail.send({
-        to: user.email,
-        from: 'app.sabora.rest@gmail.com',
-        subject: 'Recuperación de contraseña',
-        templateId: this.configService.get("SENDGRID_TEMPLATE")!,
-        dynamicTemplateData: {
-          full_name: user.full_name,
-          resetLink: this.configService.get("RESET_PASSWORD_URL")!,
-        },
-      });
-
-      return "Email sended"
-    } catch (error) {
-      console.error('Error al enviar el correo:', error);
-    }
-  }
-
->>>>>>> 9258f2896d7f9606955efaa408feb8fabbeaa865
   async findAll() {
     const user = await this.userRepository.find()
     return user
@@ -182,7 +153,6 @@ export class UserService {
           .where("email=:term or phone=:term or full_name=:term", {
             term: term.toLowerCase(),
           }).getOne()
-
       }
 
       if (!user) throw new NotFoundException("User not found")
@@ -208,6 +178,8 @@ export class UserService {
 
     if (!user) throw new NotFoundException("User not found")
 
+    await this.isUserActive(id);
+
     try {
       await this.userRepository.save(user)
       return await this.findOne(id)
@@ -216,15 +188,8 @@ export class UserService {
     }
   }
 
-<<<<<<< HEAD
-=======
-  private isEmpty() {
-
-  }
->>>>>>> 9258f2896d7f9606955efaa408feb8fabbeaa865
-
-  remove(id: number) {
-    return `This action removes a #${id} user`;
+  async remove(id: string) {
+    return await this.userRepository.update(id, { is_active: false })
   }
 
   generateJWT(payload: JwtPayload) {
@@ -271,5 +236,18 @@ export class UserService {
     }
 
     return password;
+  }
+
+  private async isUserActive(id: string) {
+
+    const isUserActive = 
+      await this.userRepository
+      .createQueryBuilder("user")
+      .select("user.is_active")
+      .where("user.id=:id", { id })
+      .getRawOne()
+      // getOne() is not useful in this case 'cause i need just one attr not the whole entity
+
+    if (isUserActive?.is_active) throw new NotFoundException("User is inactive talk with the admin")
   }
 }

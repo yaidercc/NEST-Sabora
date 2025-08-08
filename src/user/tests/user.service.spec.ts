@@ -155,7 +155,19 @@ describe("Unit UserServices tests", () => {
 
         expect(mockUserRepo.preload).toHaveBeenCalledWith(user);
         expect(mockUserRepo.save).toHaveBeenCalled();
-        
+
     });
+
+    it('should delete an user', async () => {
+        const [userCreated] = await UserMother.createManyUsers(userService, 1);
+        const user = userCreated.user as User;
+
+        await userService.remove(user.id)
+
+        expect(mockUserRepo.update).toHaveBeenCalledWith(user.id, { is_active: false });
+
+    });
+
+
 
 })

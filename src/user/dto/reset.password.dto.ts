@@ -1,5 +1,5 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { IsEmail, IsNotEmpty, IsPhoneNumber, IsString, Matches, MaxLength, MinLength, ValidateIf } from "class-validator";
+import { IsEmail, IsNotEmpty, IsString, Matches, MaxLength, MinLength, ValidateIf } from "class-validator";
 
 export class RequestTempPasswordDto {
 
@@ -15,7 +15,6 @@ export class RequestTempPasswordDto {
     username: string;
 
 }
-
 
 export class NewPassword {
 

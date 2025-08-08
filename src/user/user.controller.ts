@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, HttpCode } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, HttpCode, ParseUUIDPipe } from '@nestjs/common';
 import { UserService } from './user.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
@@ -11,6 +11,7 @@ import { UserLogin } from './interfaces/userResponses';
 import { GeneralRole } from './entities/general_role.entity';
 import { GeneralRoles } from './enums/roles';
 import { NewPassword, RequestTempPasswordDto } from './dto/reset.password.dto';
+
 
 @Controller('user')
 export class UserController {
@@ -76,7 +77,6 @@ export class UserController {
     return this.userService.changePassword(newPassword, user)
   }
 
-
   @Get("profile")
   @ApiResponse({
     status: 200,
@@ -102,7 +102,8 @@ export class UserController {
 
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.userService.remove(+id);
+  @Auth([GeneralRoles.admin])
+  remove(@Param('id', ParseUUIDPipe) id: string) {
+    return this.userService.remove(id);
   }
 }
