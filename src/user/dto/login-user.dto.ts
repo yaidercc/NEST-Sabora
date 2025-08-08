@@ -11,7 +11,7 @@ export class LoginUserDto {
     username: string;
     
     @ApiProperty({
-        example: "user123",
+        example: "user123*",
         description: "User password"
     })
     @IsString()

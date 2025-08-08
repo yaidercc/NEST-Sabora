@@ -2,7 +2,7 @@ import { Controller, Get, Post, Body, Patch, Param, Delete, HttpCode, ParseUUIDP
 import { UserService } from './user.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { ApiResponse } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { User } from './entities/user.entity';
 import { Auth } from './decorators/auth.decorator';
 import { GetUser } from './decorators/get-user.decorator';
@@ -17,83 +17,80 @@ import { NewPassword, RequestTempPasswordDto } from './dto/reset.password.dto';
 export class UserController {
   constructor(private readonly userService: UserService) { }
 
+  @ApiOperation({ summary: "Create an user" })
+  @ApiResponse({ status: 201, description: "User was created", type: User })
+  @ApiResponse({ status: 400, description: "Bad request" })
   @Post()
-  @ApiResponse({
-    status: 201,
-    description: "User was created",
-    type: User
-  })
-  @ApiResponse({
-    status: 400,
-    description: "Bad request"
-  })
-  create(
-    @Body() createUserDto: CreateUserDto
-  ) {
+  create(@Body() createUserDto: CreateUserDto) {
     return this.userService.create(createUserDto);
   }
 
-  @Post("login")
+  @ApiOperation({ summary: "User login" })
+  @ApiResponse({ status: 200, description: "User logged", type: UserLogin })
+  @ApiResponse({ status: 400, description: "email or password are incorrect" })
   @HttpCode(200)
-  @ApiResponse({
-    status: 200,
-    description: "User logged",
-    type: UserLogin
-  })
-  @ApiResponse({
-    status: 400,
-    description: "email or password are incorrect"
-  })
-  login(
-    @Body() loginUserDto: LoginUserDto
-  ) {
+  @Post("login")
+  login( @Body() loginUserDto: LoginUserDto ) {
     return this.userService.login(loginUserDto);
   }
 
-  @Get()
-  @ApiResponse({
-    status: 200,
-    description: "Users",
-    type: [User]
-  })
+  @ApiOperation({ summary: "Get all users" })
+  @ApiResponse({ status: 200, description: "Users", type: [User] })
+  @ApiBearerAuth('access-token')
   @Auth([GeneralRoles.admin], { allowAdmin: true })
+  @Get()
   findAll() {
     return this.userService.findAll();
   }
 
-  @Post("request-temp-password")
+  @ApiOperation({ summary: "Set and request temporal password" })
+  @ApiResponse({ status: 200, description: "If the user exists, a temporary password has been sent to your email.", })
+  @ApiResponse({ status: 404, description: "User not found" })
   @HttpCode(200)
+  @Post("request-temp-password")
   sendEmailToResetPassword(@Body() requestTempPasswordDto: RequestTempPasswordDto) {
     return this.userService.requestTempPassword(requestTempPasswordDto)
   }
 
-  @Post("change-password")
-  @HttpCode(200)
+  @ApiOperation({ summary: "Change user password" })
+  @ApiBearerAuth('access-token')
+  @ApiResponse({ status: 200, description: "Password changed successfully" })
+  @ApiResponse({ status: 400, description: "Passwords do not match" })
+  @ApiResponse({ status: 401, description: "Unauthorized" })
+  @ApiResponse({ status: 404, description: "User not found" })
   @Auth()
-  changePassword(
-    @Body() newPassword: NewPassword,
-    @GetUser() user: User
-  ) {
+  @HttpCode(200)
+  @Post("change-password")
+  changePassword( @Body() newPassword: NewPassword, @GetUser() user: User ) {
     return this.userService.changePassword(newPassword, user)
   }
 
-  @Get("profile")
-  @ApiResponse({
-    status: 200,
-    description: "User",
-    type: User
-  })
+  @ApiOperation({ summary: "Set and request temporal password" })
+  @ApiBearerAuth('access-token')
+  @ApiResponse({ status: 200, description: "User", type: User })
+  @ApiResponse({ status: 401, description: "Unauthorized" })
   @Auth()
+  @Get("profile")
   profile(@GetUser() user) {
     return user
   }
 
-  @Get(':term')
+  @ApiOperation({ summary: "Find one user by a term of search" })
+  @ApiBearerAuth('access-token')
+  @ApiResponse({ status: 200, description: "User", type: User })
+  @ApiResponse({ status: 401, description: "Unauthorized" })
+  @ApiResponse({ status: 404, description: "User not found" })
   @Auth([GeneralRoles.admin], { allowAdmin: true })
+  @Get(':term')
   findOne(@Param('term') term: string) {
     return this.userService.findOne(term);
   }
 
+  @ApiOperation({ summary: "Update an user" })
+  @ApiBearerAuth('access-token')
+  @ApiResponse({ status: 200, description: "User updated successfully", type: User })
+  @ApiResponse({ status: 401, description: "Unauthorized" })
+  @ApiResponse({ status: 404, description: "User not found/The specified role does not exists" })
   @Patch(':id')
   @Auth([], { allowAdmin: true })
   update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
@@ -101,8 +98,13 @@ export class UserController {
   }
 
 
-  @Delete(':id')
+  @ApiOperation({ summary: "Delete an user" })
+  @ApiBearerAuth('access-token')
+  @ApiResponse({ status: 200, description: "User deleted successfully" })
+  @ApiResponse({ status: 401, description: "Unauthorized" })
+  @ApiResponse({ status: 404, description: "User not found" })
   @Auth([GeneralRoles.admin])
+  @Delete(':id')
   remove(@Param('id', ParseUUIDPipe) id: string) {
     return this.userService.remove(id);
   }

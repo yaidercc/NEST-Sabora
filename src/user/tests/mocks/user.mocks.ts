@@ -7,9 +7,11 @@ export const mockUserRepo = {
     save: jest.fn(),
     createQueryBuilder: jest.fn().mockReturnValue({
         where: jest.fn().mockReturnThis(),
+        select: jest.fn().mockReturnThis(),
         addSelect: jest.fn().mockReturnThis(),
         leftJoinAndSelect: jest.fn().mockReturnThis(),
         getOne: jest.fn().mockResolvedValue({ id: userId, ...UserMother.dto(), password: hashSync(UserMother.dto().password, genSaltSync()) }),
+        getRawOne: jest.fn().mockReturnThis(),
     }),
     find: jest.fn(),
     findOneBy: jest.fn(),

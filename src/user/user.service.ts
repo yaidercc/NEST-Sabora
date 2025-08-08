@@ -33,7 +33,7 @@ export class UserService {
   }
 
   async create(createUserDto: CreateUserDto) {
-    const { password, ...restInfo } = createUserDto
+    const { password, role = "", ...restInfo } = createUserDto
     const generalRole = await this.findGeneralRole(GeneralRoles.client)
     try {
       const user = this.userRepository.create({
@@ -164,23 +164,28 @@ export class UserService {
   }
 
   async update(id: string, updateUserDto: UpdateUserDto) {
-
-    if (!updateUserDto || typeof updateUserDto !== 'object') {
-      throw new BadRequestException("No data provided to update");
-    }
-
-    const { password = null, ...toUpdate } = updateUserDto
-
-    const user = await this.userRepository.preload({
-      id,
-      ...toUpdate
-    })
-
-    if (!user) throw new NotFoundException("User not found")
-
-    await this.isUserActive(id);
-
     try {
+      if (!updateUserDto || typeof updateUserDto !== 'object') {
+        throw new BadRequestException("No data provided to update");
+      }
+
+      const { password = null, role: roleId = "", ...toUpdate } = updateUserDto
+
+      const user = await this.userRepository.preload({
+        id,
+        ...toUpdate
+      })
+
+      if (!user) throw new NotFoundException("User not found")
+
+      await this.isUserActive(id);
+
+      if (roleId.trim()) {
+        const role = await this.generalRoleRepository.findOneBy({ id: roleId })
+        if (!role) throw new NotFoundException("The specified role does not exists")
+        user.role = role
+      }
+
       await this.userRepository.save(user)
       return await this.findOne(id)
     } catch (error) {
@@ -240,13 +245,13 @@ export class UserService {
 
   private async isUserActive(id: string) {
 
-    const isUserActive = 
+    const isUserActive =
       await this.userRepository
-      .createQueryBuilder("user")
-      .select("user.is_active")
-      .where("user.id=:id", { id })
-      .getRawOne()
-      // getOne() is not useful in this case 'cause i need just one attr not the whole entity
+        .createQueryBuilder("user")
+        .select("user.is_active")
+        .where("user.id=:id", { id })
+        .getRawOne()
+    // getOne() is not useful in this case 'cause i need just one attr not the whole entity
 
     if (isUserActive?.is_active) throw new NotFoundException("User is inactive talk with the admin")
   }

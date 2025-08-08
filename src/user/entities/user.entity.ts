@@ -26,7 +26,7 @@ export class User {
         description: "Username"
     })
     @Index()
-    @Column("text",{unique:true})
+    @Column("text", { unique: true })
     username: string;
 
     @ApiProperty({
@@ -38,7 +38,7 @@ export class User {
     email: string;
 
     @ApiProperty({
-        example: "user123",
+        example: "user123*",
         description: "User password"
     })
     @Column("text", { select: false })
@@ -52,21 +52,25 @@ export class User {
     @Column("text", { unique: true })
     phone: string;
 
-
-    @ApiProperty({
-        example: true,
-        description: "is user active"
-    })
     @Column("boolean", {
-        default: true
+        default: true,
+        select: false
     })
     is_active: boolean;
 
-     @Column("boolean", {
-        default: false
+    @Column("boolean", {
+        default: false,
+        select: false
     })
     is_temporal_password: boolean;
 
+    @ApiProperty({
+        example: {
+            id: "61773b80-ee92-438b-bb07-ec9ed32300cd",
+            name: "client"
+        },
+        description: "User role"
+    })
     @ManyToOne(() => GeneralRole, role => role.user, { eager: true })
     role: GeneralRole;
 

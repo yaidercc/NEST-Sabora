@@ -88,10 +88,18 @@ describe("Integrations test UserService", () => {
 
         const userCreated = await userService.create(userDTO)
 
-
         const response = await userService.login({ username: userDTO.username, password: userDTO.password });
 
-        expect(response).toMatchObject(userCreated!)
+        expect(response).toMatchObject({
+            user: {
+                full_name: userDTO.full_name,
+                username: userDTO.username,
+                email: userDTO.email,
+                phone: userDTO.phone,
+
+            },
+            token: fakeToken
+        })
     });
 
 
@@ -110,7 +118,13 @@ describe("Integrations test UserService", () => {
 
         const response = await userService.update(userCreated?.user.id!, dtoUpdate);
 
-        expect(response).toMatchObject({ ...userCreated?.user!, ...dtoUpdate })
+        const { password, ...restUserDTO } = userDTO
+
+        const userUpdated = { ...restUserDTO, ...dtoUpdate }
+
+        expect(response).toMatchObject(
+            userUpdated
+        )
 
 
     });
@@ -132,7 +146,8 @@ describe("Integrations test UserService", () => {
         })
         const userAfterChange = await userRepository
             .createQueryBuilder("user")
-            .addSelect("user.password")
+            .addSelect("user.password ")
+            .addSelect("user.is_temporal_password")
             .where("user.id = :id", { id: userCreated?.user.id })
             .getOne();
 
@@ -161,9 +176,11 @@ describe("Integrations test UserService", () => {
         const userAfterChange = await userRepository
             .createQueryBuilder("user")
             .addSelect("user.password")
+            .addSelect("user.is_temporal_password")
             .where("user.id = :id", { id: userCreated?.user.id })
             .getOne();
 
+        
         expect(userBeforeCange?.password).not.toBe(userAfterChange?.password)
         expect(userAfterChange?.is_temporal_password).toBe(false)
         expect(compareSync("Yaidercc123*", userAfterChange?.password!)).toBeTruthy()
