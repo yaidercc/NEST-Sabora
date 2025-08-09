@@ -6,6 +6,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { UserModule } from './user/user.module';
 import { SeedModule } from './seed/seed.module';
 import { MailerModule } from "@nestjs-modules/mailer"
+import { EmployeeModule } from './employee/employee.module';
 
 @Module({
   imports: [
@@ -39,7 +40,8 @@ import { MailerModule } from "@nestjs-modules/mailer"
       },
     }),
     UserModule,
-    SeedModule
+    SeedModule,
+    EmployeeModule
   ],
   controllers: [],
   providers: [],

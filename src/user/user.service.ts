@@ -7,7 +7,6 @@ import { Repository } from 'typeorm';
 import { handleException } from 'src/common/handleErrors';
 import { genSaltSync, hashSync, compareSync } from "bcrypt"
 import { GeneralRole } from './entities/general_role.entity';
-import { GeneralRoles } from './enums/roles';
 import { validate as isUUID } from "uuid"
 import { LoginUserDto } from './dto/login-user.dto';
 import { JwtService } from '@nestjs/jwt';
@@ -15,6 +14,7 @@ import { JwtPayload } from './interfaces/jwtInterface';
 import * as sgMail from '@sendgrid/mail'; // sgMail library to send mails with http instead of smtp
 import { ConfigService } from '@nestjs/config';
 import { NewPassword, RequestTempPasswordDto } from './dto/reset.password.dto';
+import { GeneralRoles } from 'src/common/enums/roles';
 
 
 @Injectable()

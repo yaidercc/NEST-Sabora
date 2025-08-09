@@ -5,7 +5,7 @@ export enum GeneralRoles {
 }
 
 export enum EmployeeRoles {
-    client = "client",
-    employee = "employee",
-    admin = "admin"
+    cooker = "cooker",
+    cashier = "cashier",
+    waitress = "waitress"
 }

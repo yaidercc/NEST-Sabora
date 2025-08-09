@@ -1,7 +1,7 @@
 import { CanActivate, ExecutionContext, ForbiddenException, Injectable } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
+import { GeneralRoles } from 'src/common/enums/roles';
 import { OWNER_ADMIN_KEY } from 'src/user/decorators/owner-protected.decorator';
-import { GeneralRoles } from 'src/user/enums/roles';
 
 @Injectable()
 export class IsOwnerOrAdminGuard implements CanActivate {

@@ -5,13 +5,13 @@ import { User } from "../entities/user.entity";
 import { getRepositoryToken, TypeOrmModule } from "@nestjs/typeorm";
 import { UserMother } from "./userMother";
 import { GeneralRole } from "../entities/general_role.entity";
-import { GeneralRoles } from "../enums/roles";
 import { JwtService } from "@nestjs/jwt";
 import { UserModule } from "../user.module";
 import { JoiEnvValidation } from "src/config/joi.validation";
 import { EnvConfiguration } from "src/config/env.config";
 import { ConfigModule } from "@nestjs/config";
 import { compareSync } from "bcrypt";
+import { GeneralRoles } from "src/common/enums/roles";
 
 
 jest.mock('@sendgrid/mail', () => ({

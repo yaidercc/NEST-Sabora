@@ -1,5 +1,6 @@
 import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from "typeorm";
 import { User } from "./user.entity";
+import { GeneralRoles } from "src/common/enums/roles";
 
 @Entity("general_role")
 export class GeneralRole {
@@ -7,13 +8,13 @@ export class GeneralRole {
     @PrimaryGeneratedColumn("uuid")
     id: string;
 
-    @Column({ length: 50 })
+    @Column({ type: "enum", enum: GeneralRoles })
     name: string;
 
     @OneToMany(
         () => User,
         user => user.role,
-        {eager: false}
+        { eager: false }
     )
     user: User[]
 }

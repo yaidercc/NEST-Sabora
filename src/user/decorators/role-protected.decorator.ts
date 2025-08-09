@@ -1,5 +1,5 @@
 import { SetMetadata } from '@nestjs/common';
-import { GeneralRoles } from '../enums/roles';
+import { GeneralRoles } from 'src/common/enums/roles';
 
 export const META_ROLES = 'roles'
 

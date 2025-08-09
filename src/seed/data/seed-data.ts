@@ -1,6 +1,7 @@
-import { GeneralRoles } from "src/user/enums/roles"
+
 import { v4 as uuid } from "uuid"
 import { genSaltSync, hashSync } from "bcrypt"
+import { GeneralRoles } from "src/common/enums/roles"
 
 interface GeneralRole {
     id: string,

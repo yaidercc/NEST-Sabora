@@ -11,12 +11,12 @@ import { JoiEnvValidation } from "src/config/joi.validation";
 import { INestApplication } from "@nestjs/common";
 import * as request from 'supertest';
 import { UserModule } from "../user.module";
-import { GeneralRoles } from "../enums/roles";
 import { JwtService } from "@nestjs/jwt";
 import { initialData } from "src/seed/data/seed-data";
 import { SeedModule } from "src/seed/seed.module";
 import { SeedService } from "src/seed/seed.service";
 import { compareSync } from "bcrypt";
+import { GeneralRoles } from "src/common/enums/roles";
 
 describe("Integrations test UserService", () => {
     // setting up the necesaries variables
@@ -156,11 +156,9 @@ describe("Integrations test UserService", () => {
 
     it("GET /user", async () => {
         await UserMother.createManyUsers(userService, 2);
-
         const response = await request(app.getHttpServer())
             .get("/user")
             .set('Authorization', `Bearer ${adminLogin?.token}`);
-
         expect(response.status).toBe(200)
         expect(response.body.length).toBe(3)
     })
@@ -221,6 +219,7 @@ describe("Integrations test UserService", () => {
         const userAfterChange = await userRepository
             .createQueryBuilder("user")
             .addSelect("user.password")
+            .addSelect("user.is_temporal_password")
             .where("user.id = :id", { id: user.id })
             .getOne();
 
@@ -250,6 +249,7 @@ describe("Integrations test UserService", () => {
         const userAfterChange = await userRepository
             .createQueryBuilder("user")
             .addSelect("user.password")
+            .addSelect("user.is_temporal_password")
             .where("user.id = :id", { id: user.id })
             .getOne();
 

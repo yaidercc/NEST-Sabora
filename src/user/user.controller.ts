@@ -9,8 +9,9 @@ import { GetUser } from './decorators/get-user.decorator';
 import { LoginUserDto } from './dto/login-user.dto';
 import { UserLogin } from './interfaces/userResponses';
 import { GeneralRole } from './entities/general_role.entity';
-import { GeneralRoles } from './enums/roles';
+
 import { NewPassword, RequestTempPasswordDto } from './dto/reset.password.dto';
+import { GeneralRoles } from 'src/common/enums/roles';
 
 
 @Controller('user')
@@ -30,12 +31,13 @@ export class UserController {
   @ApiResponse({ status: 400, description: "email or password are incorrect" })
   @HttpCode(200)
   @Post("login")
-  login( @Body() loginUserDto: LoginUserDto ) {
+  login(@Body() loginUserDto: LoginUserDto) {
     return this.userService.login(loginUserDto);
   }
 
   @ApiOperation({ summary: "Get all users" })
   @ApiResponse({ status: 200, description: "Users", type: [User] })
+  @ApiResponse({ status: 401, description: "Unauthorized" })
   @ApiBearerAuth('access-token')
   @Auth([GeneralRoles.admin], { allowAdmin: true })
   @Get()
@@ -61,7 +63,7 @@ export class UserController {
   @Auth()
   @HttpCode(200)
   @Post("change-password")
-  changePassword( @Body() newPassword: NewPassword, @GetUser() user: User ) {
+  changePassword(@Body() newPassword: NewPassword, @GetUser() user: User) {
     return this.userService.changePassword(newPassword, user)
   }
 
