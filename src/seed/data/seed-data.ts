@@ -1,9 +1,14 @@
 
 import { v4 as uuid } from "uuid"
 import { genSaltSync, hashSync } from "bcrypt"
-import { GeneralRoles } from "src/common/enums/roles"
+import { EmployeeRoles, GeneralRoles } from "src/common/enums/roles"
 
 interface GeneralRole {
+    id: string,
+    name: string
+}
+
+export interface EmployeeRole {
     id: string,
     name: string
 }
@@ -17,9 +22,16 @@ interface User {
     phone: string
 }
 
+interface Employee {
+    id: string,
+    hiring_date: string,
+}
+
 interface InitialData {
     generalRoles: GeneralRole[],
-    user: User
+    employeeRoles: EmployeeRole[]
+    user: User,
+    employee: Employee
 }
 
 export const initialData: InitialData = {
@@ -37,6 +49,20 @@ export const initialData: InitialData = {
             name: GeneralRoles.client
         },
     ],
+    employeeRoles: [
+        {
+            id: uuid(),
+            name: EmployeeRoles.cashier
+        },
+        {
+            id: uuid(),
+            name: EmployeeRoles.waitress
+        },
+        {
+            id: uuid(),
+            name: EmployeeRoles.cooker
+        },
+    ],
     user: {
         id: uuid(),
         full_name: "jhon doe",
@@ -44,6 +70,10 @@ export const initialData: InitialData = {
         email: "jhon@gmail.com",
         password: hashSync("Jhondoe123*", genSaltSync()),
         phone: "573165482747"
+    },
+    employee:{
+        id: uuid(),
+        hiring_date: "2020-10-10",
     }
 
 }

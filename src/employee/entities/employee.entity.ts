@@ -10,7 +10,7 @@ export class Employee {
         example: "d3aa5adb-28b4-4686-827d-a2111141e558"
 
     })
-    @PrimaryGeneratedColumn()
+    @PrimaryGeneratedColumn("uuid")
     id: string;
 
     @ApiProperty({
@@ -26,8 +26,7 @@ export class Employee {
 
     @OneToOne(
         () => User,
-        user => user.employee,
-        { eager: true }
+        user => user.employee
     )
     /**
      * When is a 1:1 relations typeorm needs to know which table will store the fk of the other table

@@ -5,7 +5,7 @@ import { JoiEnvValidation } from './config/joi.validation';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { UserModule } from './user/user.module';
 import { SeedModule } from './seed/seed.module';
-import { MailerModule } from "@nestjs-modules/mailer"
+import { MailerModule } from "@nestjs-modules/mailer";
 import { EmployeeModule } from './employee/employee.module';
 
 @Module({

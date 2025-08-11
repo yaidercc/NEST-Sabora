@@ -78,7 +78,7 @@ export class User {
     @OneToOne(
         () => Employee,
         employee => employee.user,
-        { nullable: true}
+        { nullable: true, eager: true }
     )
     employee?: Employee;
 

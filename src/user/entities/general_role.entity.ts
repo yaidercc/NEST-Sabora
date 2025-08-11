@@ -8,7 +8,7 @@ export class GeneralRole {
     @PrimaryGeneratedColumn("uuid")
     id: string;
 
-    @Column({ type: "enum", enum: GeneralRoles })
+    @Column({ type: "simple-enum", enum: GeneralRoles })
     name: string;
 
     @OneToMany(
