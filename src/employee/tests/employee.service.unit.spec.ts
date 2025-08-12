@@ -30,7 +30,7 @@ describe("Unit EmployeeServices tests", () => {
                     provide: DataSource,
                     useValue: mockDataSource
                 },
-                
+
             ]
         }).compile()
 
@@ -52,6 +52,20 @@ describe("Unit EmployeeServices tests", () => {
 
         expect(mockManager.create).toHaveBeenCalled()
         expect(mockManager.save).toHaveBeenCalled()
+        expect(response).toMatchObject(employeeCreated)
+
+    });
+
+
+
+    it('should create an employee', async () => {
+        const employeeDTO = EmployeeMother.dto()
+        const employeeCreated = { ...employeeDTO, id: employeeId }
+
+        mockEmployeeRepo.findOne.mockReturnValue(employeeCreated)
+
+        const response = await employeeService.findOne(employeeCreated.id)
+        expect(mockEmployeeRepo.findOne).toHaveBeenCalledWith({ id: employeeCreated.id })
         expect(response).toMatchObject(employeeCreated)
 
     });

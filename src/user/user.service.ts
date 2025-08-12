@@ -150,9 +150,8 @@ export class UserService {
         const queryBuilder = this.userRepository.createQueryBuilder("user");
         user = await queryBuilder
           .leftJoinAndSelect("user.role", "role")
-          .where("email=:term or phone=:term or full_name=:term", {
-            term: term.toLowerCase(),
-          }).getOne()
+          .where("(LOWER(email) = :term OR LOWER(phone) = :term OR LOWER(full_name) = :term)", { term: term.toLowerCase() })
+          .getOne()
       }
 
       if (!user) throw new NotFoundException("User not found")

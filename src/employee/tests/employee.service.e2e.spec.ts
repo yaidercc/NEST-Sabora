@@ -112,12 +112,12 @@ describe("Integrations test EmployeeService", () => {
     it("POST /employee", async () => {
         const [{ user }] = await UserMother.createManyUsers(userService, 1)
         const employeeDTO = EmployeeMother.dto({ user_id: user.id, employee_role_id: employeeRoles[EmployeeRoles.cashier] })
-        
+
         const response = await request(app.getHttpServer())
             .post('/employee')
             .set('Authorization', `Bearer ${adminLogin?.token}`)
             .send(employeeDTO)
-        
+
         expect(response.status).toBe(201)
         expect(response.body.id).toBeDefined()
         expect(response.body.hiring_date).toBe(employeeDTO.hiring_date)
@@ -128,5 +128,27 @@ describe("Integrations test EmployeeService", () => {
             email: user.email,
             phone: user.phone,
         })
+    })
+
+    it("GET /employee", async () => {
+        const [employee] = await EmployeeMother.createManyEmployees(employeeService, userService, 1, employeeRoles)
+
+        const response = await request(app.getHttpServer())
+            .get(`/employee/${employee.id}`)
+            .set('Authorization', `Bearer ${adminLogin?.token}`)
+
+        expect(response.status).toBe(200)
+        expect(response.body).toBeDefined()
+        expect(response.body).toMatchObject({
+            id: employee.id,
+            hiring_date: employee.hiring_date,
+            user: {
+                id: employee.user.id
+            },
+            employee_role: {
+                id: employee.employee_role.id 
+            }
+        })
+
     })
 })

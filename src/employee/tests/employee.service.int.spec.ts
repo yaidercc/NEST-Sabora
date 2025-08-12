@@ -87,5 +87,21 @@ describe("Integrations test EmployeeService", () => {
             phone: responseUser?.user.phone,
         })
     })
+
+
+    it("Should return an employee", async () => {
+        const [employee] = await EmployeeMother.createManyEmployees(employeeService, userService, 1, employeeRoles)
+        const response = await employeeService.findOne(employee.id)
+        expect(response).toMatchObject({
+            id: employee.id,
+            hiring_date: employee.hiring_date,
+            user: {
+                id: employee.user.id
+            },
+            employee_role: {
+                id: employee.employee_role.id
+            }
+        })
+    })
 })
 

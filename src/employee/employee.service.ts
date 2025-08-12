@@ -7,6 +7,7 @@ import { DataSource, Repository } from 'typeorm';
 import { EmployeeRole } from './entities/employee_role.entity';
 import { handleException } from 'src/common/handleErrors';
 import { User } from 'src/user/entities/user.entity';
+import { validate as isUUID } from "uuid"
 
 @Injectable()
 export class EmployeeService {
@@ -55,8 +56,21 @@ export class EmployeeService {
     return `This action returns all employee`;
   }
 
-  async findOne(id: string) {
-    return await this.employeeRepository.findOneBy({ id });
+  async findOne(term: string) {
+    let employee: Employee | null = null;
+    if (isUUID(term)) {
+      const queryBuilder = await this.employeeRepository.createQueryBuilder("employee")
+      employee = await queryBuilder
+        .leftJoinAndSelect("employee.employee_role", "employee_role")
+        .leftJoinAndSelect("employee.user", "user")
+        .where("employee.id=:term or employee.user=:term", {
+          term,
+        })
+        .getOne()
+    }
+
+    if (!employee) throw new NotFoundException("Employee not found")
+    return employee
   }
 
   update(id: number, updateEmployeeDto: UpdateEmployeeDto) {
