@@ -27,7 +27,6 @@ export class Employee {
     @OneToOne(
         () => User,
         user => user.employee,
-        
     )
     /**
      * When is a 1:1 relations typeorm needs to know which table will store the fk of the other table

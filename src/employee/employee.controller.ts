@@ -1,23 +1,26 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Query } from '@nestjs/common';
 import { EmployeeService } from './employee.service';
 import { CreateEmployeeDto } from './dto/create-employee.dto';
 import { UpdateEmployeeDto } from './dto/update-employee.dto';
 import { Auth } from 'src/user/decorators/auth.decorator';
 import { GeneralRoles } from 'src/common/enums/roles';
+import { PaginationDto } from 'src/common/dtos/pagination.dto';
 
 @Controller('employee')
+@Auth([GeneralRoles.admin])
 export class EmployeeController {
-  constructor(private readonly employeeService: EmployeeService) {}
+  constructor(private readonly employeeService: EmployeeService) { }
 
   @Post()
-  @Auth([GeneralRoles.admin])
   create(@Body() createEmployeeDto: CreateEmployeeDto) {
     return this.employeeService.create(createEmployeeDto);
   }
 
   @Get()
-  findAll() {
-    return this.employeeService.findAll();
+  findAll(
+    @Query() pagination: PaginationDto
+  ) {
+    return this.employeeService.findAll(pagination);
   }
 
   @Get(':term')

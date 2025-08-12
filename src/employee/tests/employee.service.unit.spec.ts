@@ -6,6 +6,7 @@ import { Test, TestingModule } from "@nestjs/testing";
 import { getRepositoryToken } from "@nestjs/typeorm";
 import { employeeId, mockDataSource, mockEmployeeRepo, mockEmployeeRoleRepo, mockManager } from "./mocks/employee.mock";
 import { EmployeeMother } from "./employeeMother";
+import { v4 as uuid } from "uuid"
 
 
 describe("Unit EmployeeServices tests", () => {
@@ -58,15 +59,41 @@ describe("Unit EmployeeServices tests", () => {
 
 
 
-    it('should create an employee', async () => {
+    it('should return an employee', async () => {
         const employeeDTO = EmployeeMother.dto()
         const employeeCreated = { ...employeeDTO, id: employeeId }
 
-        mockEmployeeRepo.findOne.mockReturnValue(employeeCreated)
+        const mockQueryBuilder = {
+            leftJoinAndSelect: jest.fn().mockReturnThis(),
+            where: jest.fn().mockReturnThis(),
+            getOne: jest.fn().mockResolvedValue(employeeCreated)
+        }
+
+        mockEmployeeRepo.createQueryBuilder.mockReturnValue(mockQueryBuilder)
 
         const response = await employeeService.findOne(employeeCreated.id)
-        expect(mockEmployeeRepo.findOne).toHaveBeenCalledWith({ id: employeeCreated.id })
+        expect(mockQueryBuilder.leftJoinAndSelect).toHaveBeenCalledTimes(2)
+        expect(mockQueryBuilder.getOne).toHaveBeenCalledTimes(1)
         expect(response).toMatchObject(employeeCreated)
+
+    });
+
+    it('should return all employee', async () => {
+        const employee1Created = { ...EmployeeMother.dto(), id: employeeId }
+        const employee2Created = { ...EmployeeMother.dto({ user_id: uuid(), employee_role_id: uuid() }), id: employeeId }
+
+        mockEmployeeRepo.find.mockReturnValue([
+            employee1Created,
+            employee2Created
+        ])
+
+        const response = await employeeService.findAll({ limit: 10, offset: 0 })
+
+        expect(mockEmployeeRepo.find).toHaveBeenCalled()
+        expect(response).toEqual([
+            employee1Created,
+            employee2Created
+        ])
 
     });
 

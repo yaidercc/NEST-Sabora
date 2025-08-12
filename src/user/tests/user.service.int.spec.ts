@@ -12,6 +12,8 @@ import { EnvConfiguration } from "src/config/env.config";
 import { ConfigModule } from "@nestjs/config";
 import { compareSync } from "bcrypt";
 import { GeneralRoles } from "src/common/enums/roles";
+import { Employee } from "src/employee/entities/employee.entity";
+import { EmployeeRole } from "src/employee/entities/employee_role.entity";
 
 
 jest.mock('@sendgrid/mail', () => ({
@@ -36,11 +38,11 @@ describe("Integrations test UserService", () => {
                 TypeOrmModule.forRoot({
                     type: "sqlite",
                     database: ":memory:",
-                    entities: [User, GeneralRole],
+                    entities: [User, GeneralRole, Employee, EmployeeRole],
                     synchronize: true,
                     dropSchema: true
                 }),
-                TypeOrmModule.forFeature([User, GeneralRole]),
+                TypeOrmModule.forFeature([User, GeneralRole, Employee, EmployeeRole]),
                 UserModule
             ],
             providers: [UserService, JwtService]
@@ -180,7 +182,7 @@ describe("Integrations test UserService", () => {
             .where("user.id = :id", { id: userCreated?.user.id })
             .getOne();
 
-        
+
         expect(userBeforeCange?.password).not.toBe(userAfterChange?.password)
         expect(userAfterChange?.is_temporal_password).toBe(false)
         expect(compareSync("Yaidercc123*", userAfterChange?.password!)).toBeTruthy()

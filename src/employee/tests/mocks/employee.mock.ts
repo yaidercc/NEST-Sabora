@@ -6,7 +6,9 @@ export const mockEmployeeRepo = {
     create: jest.fn(),
     save: jest.fn(),
     preload: jest.fn(),
-    findOne: jest.fn()
+    findOne: jest.fn(),
+    find: jest.fn(),
+    createQueryBuilder: jest.fn(),
 }
 
 export const mockEmployeeRoleRepo = {
@@ -14,7 +16,7 @@ export const mockEmployeeRoleRepo = {
 
 export const mockManager = {
     findOneBy: jest.fn().mockReturnThis(),
-    create: jest.fn().mockReturnValue({ id: employeeId, ...EmployeeMother.dto()}),
+    create: jest.fn().mockReturnValue({ id: employeeId, ...EmployeeMother.dto() }),
     save: jest.fn().mockReturnThis(),
 }
 

@@ -17,6 +17,10 @@ import { SeedModule } from "src/seed/seed.module";
 import { SeedService } from "src/seed/seed.service";
 import { compareSync } from "bcrypt";
 import { GeneralRoles } from "src/common/enums/roles";
+import { EmployeeService } from "src/employee/employee.service";
+import { Employee } from "src/employee/entities/employee.entity";
+import { EmployeeRole } from "src/employee/entities/employee_role.entity";
+import { EmployeeModule } from "src/employee/employee.module";
 
 describe("Integrations test UserService", () => {
     // setting up the necesaries variables
@@ -57,12 +61,13 @@ describe("Integrations test UserService", () => {
                     database: process.env.DB_NAME,
                     username: process.env.DB_USERNAME,
                     password: process.env.DB_PASSWORD,
-                    entities: [User, GeneralRole],
+                    entities: [User, GeneralRole,Employee, EmployeeRole],
                     synchronize: true,
                     dropSchema: true
                 }),
-                TypeOrmModule.forFeature([User, GeneralRole]),
+                TypeOrmModule.forFeature([User, GeneralRole,Employee, EmployeeRole]),
                 UserModule,
+                EmployeeModule,
                 SeedModule
             ],
             providers: [UserService, JwtService, SeedService]
@@ -81,7 +86,6 @@ describe("Integrations test UserService", () => {
 
     // Cleaning up the data before each tests
     beforeEach(async () => {
-        await userRepository.clear()
         await seedService.executeSEED();
         const loginResponse = await request(app.getHttpServer())
             .post("/user/login")

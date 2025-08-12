@@ -103,5 +103,15 @@ describe("Integrations test EmployeeService", () => {
             }
         })
     })
+
+    it("should return all employees", async () => {
+        await EmployeeMother.createManyEmployees(employeeService, userService, 2, employeeRoles)
+
+        const response = await employeeService.findAll({ limit: 10, offset: 0 })
+
+        expect(response).toBeDefined()
+        expect(response.length).toBe(2)
+
+    })
 })
 

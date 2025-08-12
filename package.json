@@ -17,7 +17,7 @@
     "test:watch": "jest --watch",
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
-    "test:e2e": "jest --testMatch=**/*.e2e.spec.ts",
+    "test:e2e": "jest --testMatch=**/*.e2e.spec.ts --runInBand --detectOpenHandles --forceExit",
     "test:int": "jest --testMatch=**/*.int.spec.ts",
     "test:unit": "jest --testMatch=**/*.unit.spec.ts",
     "docker:dev": "docker compose down -v && docker compose --env-file .env up -d",

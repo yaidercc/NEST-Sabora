@@ -74,14 +74,10 @@ describe("Integrations test EmployeeService", () => {
 
         userService = module.get<UserService>(UserService);
         userRepository = module.get<Repository<User>>(getRepositoryToken(User))
-
         employeeService = module.get<EmployeeService>(EmployeeService);
         employeeRepository = module.get<Repository<Employee>>(getRepositoryToken(Employee))
-
         employeeRoleRepository = module.get<Repository<EmployeeRole>>(getRepositoryToken(EmployeeRole))
-
         repoGeneralRole = module.get<Repository<GeneralRole>>(getRepositoryToken(GeneralRole))
-
         seedService = module.get<SeedService>(SeedService)
 
         app = module.createNestApplication()
@@ -130,7 +126,7 @@ describe("Integrations test EmployeeService", () => {
         })
     })
 
-    it("GET /employee", async () => {
+    it("GET /employee/:term", async () => {
         const [employee] = await EmployeeMother.createManyEmployees(employeeService, userService, 1, employeeRoles)
 
         const response = await request(app.getHttpServer())
@@ -146,9 +142,23 @@ describe("Integrations test EmployeeService", () => {
                 id: employee.user.id
             },
             employee_role: {
-                id: employee.employee_role.id 
+                id: employee.employee_role.id
             }
         })
+
+    })
+
+
+    it("GET /employee", async () => {
+        await EmployeeMother.createManyEmployees(employeeService, userService, 2, employeeRoles)
+
+        const response = await request(app.getHttpServer())
+            .get(`/employee/?limit=${10}&offset=${0}`)
+            .set('Authorization', `Bearer ${adminLogin?.token}`)
+        
+        expect(response.status).toBe(200)
+        expect(response.body).toBeDefined()
+        expect(response.body.length).toBe(2)
 
     })
 })

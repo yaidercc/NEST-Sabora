@@ -8,6 +8,7 @@ import { EmployeeRole } from './entities/employee_role.entity';
 import { handleException } from 'src/common/handleErrors';
 import { User } from 'src/user/entities/user.entity';
 import { validate as isUUID } from "uuid"
+import { PaginationDto } from 'src/common/dtos/pagination.dto';
 
 @Injectable()
 export class EmployeeService {
@@ -52,8 +53,17 @@ export class EmployeeService {
     }
   }
 
-  findAll() {
-    return `This action returns all employee`;
+  async findAll(pagination: PaginationDto) {
+    const { limit = 10, offset = 0 } = pagination
+
+    return await this.employeeRepository.find({
+      take: limit,
+      skip: offset,
+      relations: {
+        user: true,
+        employee_role: true
+      }
+    })
   }
 
   async findOne(term: string) {

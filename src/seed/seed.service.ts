@@ -27,9 +27,8 @@ export class SeedService {
   async executeSEED() {
     await this.deleteTables()
     const adminRole = await this.insertGeneralRoles();
-    const employeeRole = await this.insertEmployeeRoles();
-    const user = await this.insertUser(adminRole)
-    await this.insertEmployee(employeeRole,user)
+    await this.insertEmployeeRoles();
+    await this.insertUser(adminRole)
     return "SEED EXECUTED"
   }
 
@@ -51,14 +50,6 @@ export class SeedService {
     return user
   }
 
-  private async insertEmployee(employee_role: EmployeeRole, user: User) {
-    const employee = this.employeeRepository.create({
-      ...initialData.employee,
-      employee_role,
-      user
-    });
-    await this.employeeRepository.save(employee)
-  }
 
   private async insertGeneralRoles() {
     const generalRoles = initialData.generalRoles.map((item) => this.generalRoleRepository.create(item))
