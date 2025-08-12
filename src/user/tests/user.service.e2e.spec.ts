@@ -1,98 +1,37 @@
-import { Test, TestingModule } from "@nestjs/testing"
-import { UserService } from "../user.service"
-import { Repository } from "typeorm";
-import { User } from "../entities/user.entity";
-import { getRepositoryToken, TypeOrmModule } from "@nestjs/typeorm";
+import { TestingModule } from "@nestjs/testing";
 import { UserMother } from "./userMother";
 import { GeneralRole } from "../entities/general_role.entity";
-import { ConfigModule } from "@nestjs/config";
-import { EnvConfiguration } from "src/config/env.config";
-import { JoiEnvValidation } from "src/config/joi.validation";
 import { INestApplication } from "@nestjs/common";
 import * as request from 'supertest';
-import { UserModule } from "../user.module";
 import { JwtService } from "@nestjs/jwt";
-import { initialData } from "src/seed/data/seed-data";
-import { SeedModule } from "src/seed/seed.module";
-import { SeedService } from "src/seed/seed.service";
 import { compareSync } from "bcrypt";
 import { GeneralRoles } from "src/common/enums/roles";
-import { EmployeeService } from "src/employee/employee.service";
-import { Employee } from "src/employee/entities/employee.entity";
-import { EmployeeRole } from "src/employee/entities/employee_role.entity";
-import { EmployeeModule } from "src/employee/employee.module";
+import { TestDatabaseManager } from "src/common/tests/test-database";
+import { AdminLogin, TestHelpers, TestRepositories, TestServices } from "src/common/tests/test-helpers";
 
 describe("Integrations test UserService", () => {
-    // setting up the necesaries variables
-    let userService: UserService;
-    let seedService: SeedService;
-    let userRepository: Repository<User>
-    let repoGeneralRole: Repository<GeneralRole>
     let module: TestingModule;
     let app: INestApplication
     let clientRole: GeneralRole | null
-    let adminLogin: {
-        user: {
-            id: string,
-            full_name: string,
-            email: string,
-            phone: string,
-            is_active: boolean,
-            role: GeneralRole
-        }, token: string
-    } | undefined
-
+    let adminLogin: AdminLogin | undefined
+    let services: TestServices
+    let repositories: TestRepositories
 
     beforeAll(async () => {
-        // Creating a module for the tests
-        module = await Test.createTestingModule({
-            imports: [
-                // Importing the configs for the environment variables
-                ConfigModule.forRoot({
-                    envFilePath: ".env.test", // we´ll use the variables from the .env.test file
-                    load: [EnvConfiguration],
-                    validationSchema: JoiEnvValidation
-                }),
-                // Setting up the config for the database and the schemas
-                TypeOrmModule.forRoot({
-                    type: "postgres",
-                    host: "localhost",
-                    port: +process.env.DB_PORT!,
-                    database: process.env.DB_NAME,
-                    username: process.env.DB_USERNAME,
-                    password: process.env.DB_PASSWORD,
-                    entities: [User, GeneralRole,Employee, EmployeeRole],
-                    synchronize: true,
-                    dropSchema: true
-                }),
-                TypeOrmModule.forFeature([User, GeneralRole,Employee, EmployeeRole]),
-                UserModule,
-                EmployeeModule,
-                SeedModule
-            ],
-            providers: [UserService, JwtService, SeedService]
-        }).compile()
+        // Initializing module and Nest app
+        const testDB = await TestDatabaseManager.initialize()
+        app = testDB.app
+        module = testDB.module
 
-        // Preparing the services en repositories to be used on the tests
-        userService = module.get<UserService>(UserService);
-        userRepository = module.get<Repository<User>>(getRepositoryToken(User))
-        repoGeneralRole = module.get<Repository<GeneralRole>>(getRepositoryToken(GeneralRole))
-        seedService = module.get<SeedService>(SeedService)
-
-        // Initializing the api
-        app = module.createNestApplication()
-        await app.init()
+        services = TestHelpers.getServices(module)
+        repositories = TestHelpers.getRepositories(module)
     })
 
-    // Cleaning up the data before each tests
+    // Cleaning up the data before each test
     beforeEach(async () => {
-        await seedService.executeSEED();
-        const loginResponse = await request(app.getHttpServer())
-            .post("/user/login")
-            .send({ username: initialData.user.username, password: "Jhondoe123*" });
-
-        adminLogin = loginResponse.body;
-        clientRole = await repoGeneralRole.findOneBy({ name: GeneralRoles.client })
+        await services.seedService.executeSEED();
+        adminLogin = await TestHelpers.loginAsAdmin(app);
+        clientRole = await TestHelpers.getRepositories(module).repoGeneralRole.findOneBy({ name: GeneralRoles.client })
     })
 
     // Closing the nest aplication at the end of the tests
@@ -100,6 +39,7 @@ describe("Integrations test UserService", () => {
         await app.close()
     });
 
+    // Reseting mocks after each test
     afterEach(async () => {
         jest.restoreAllMocks();
     });
@@ -133,7 +73,7 @@ describe("Integrations test UserService", () => {
         const userDTO = UserMother.dto();
         const fakeToken = 'fake-jwt'
         jest.spyOn(JwtService.prototype, "sign").mockReturnValue(fakeToken)
-        await userService.create(userDTO)
+        await services.userService.create(userDTO)
 
         const response = await request(app.getHttpServer())
             .post("/user/login")
@@ -159,7 +99,7 @@ describe("Integrations test UserService", () => {
 
 
     it("GET /user", async () => {
-        await UserMother.createManyUsers(userService, 2);
+        await UserMother.createManyUsers(services.userService, 2);
         const response = await request(app.getHttpServer())
             .get("/user")
             .set('Authorization', `Bearer ${adminLogin?.token}`);
@@ -169,7 +109,7 @@ describe("Integrations test UserService", () => {
 
 
     it("GET /user/profile", async () => {
-        await UserMother.createManyUsers(userService, 2);
+        await UserMother.createManyUsers(services.userService, 2);
 
         const response = await request(app.getHttpServer())
             .get("/user/profile")
@@ -180,7 +120,7 @@ describe("Integrations test UserService", () => {
     })
 
     it("UPDATE /user", async () => {
-        const [{ user, token }] = await UserMother.createManyUsers(userService, 1);
+        const [{ user, token }] = await UserMother.createManyUsers(services.userService, 1);
         const dtoUpdate = { full_name: "jhonsito doe" }
         const response = await request(app.getHttpServer())
             .patch(`/user/${user.id}`)
@@ -202,12 +142,11 @@ describe("Integrations test UserService", () => {
     })
 
 
-
     it('POST /user/request-temp-password', async () => {
-        const [{ user, token }] = await UserMother.createManyUsers(userService, 1)
+        const [{ user, token }] = await UserMother.createManyUsers(services.userService, 1)
 
 
-        const userBeforeCange = await userRepository
+        const userBeforeCange = await repositories.userRepository
             .createQueryBuilder("user")
             .addSelect("user.password")
             .where("user.id = :id", { id: user.id })
@@ -220,7 +159,7 @@ describe("Integrations test UserService", () => {
                 username: user.username,
             })
 
-        const userAfterChange = await userRepository
+        const userAfterChange = await repositories.userRepository
             .createQueryBuilder("user")
             .addSelect("user.password")
             .addSelect("user.is_temporal_password")
@@ -233,10 +172,10 @@ describe("Integrations test UserService", () => {
 
 
     it('POST /user/change-password', async () => {
-        const [{ user, token }] = await UserMother.createManyUsers(userService, 1);
+        const [{ user, token }] = await UserMother.createManyUsers(services.userService, 1);
 
 
-        const userBeforeCange = await userRepository
+        const userBeforeCange = await repositories.userRepository
             .createQueryBuilder("user")
             .addSelect("user.password")
             .where("user.id = :id", { id: user.id })
@@ -250,7 +189,7 @@ describe("Integrations test UserService", () => {
                 repeatPassword: "Yaidercc123*"
             })
 
-        const userAfterChange = await userRepository
+        const userAfterChange = await repositories.userRepository
             .createQueryBuilder("user")
             .addSelect("user.password")
             .addSelect("user.is_temporal_password")
@@ -265,12 +204,12 @@ describe("Integrations test UserService", () => {
 
 
     it('DELETE /user', async () => {
-        const [{ user }] = await UserMother.createManyUsers(userService, 1)
+        const [{ user }] = await UserMother.createManyUsers(services.userService, 1)
         await request(app.getHttpServer())
             .delete(`/user/${user.id}`)
             .set('Authorization', `Bearer ${adminLogin?.token}`)
 
-        const userAfterChange = await userRepository
+        const userAfterChange = await repositories.userRepository
             .createQueryBuilder("user")
             .select("user.is_active")
             .where("user.id = :id", { id: user.id })
