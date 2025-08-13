@@ -8,6 +8,7 @@ import { compareSync } from "bcrypt";
 import { GeneralRoles } from "src/common/enums/roles";
 import { TestDatabaseManager } from "src/common/tests/test-database";
 import { AdminLogin, TestHelpers, TestRepositories, TestServices } from "src/common/tests/test-helpers";
+import { EmployeeMother } from "src/employee/tests/employeeMother";
 
 describe("Integrations test UserService", () => {
     let module: TestingModule;
@@ -16,10 +17,9 @@ describe("Integrations test UserService", () => {
     let adminLogin: AdminLogin | undefined
     let services: TestServices
     let repositories: TestRepositories
-
     beforeAll(async () => {
         // Initializing module and Nest app
-        const testDB = await TestDatabaseManager.initialize()
+        const testDB = await TestDatabaseManager.initializeE2E()
         app = testDB.app
         module = testDB.module
 
@@ -31,12 +31,12 @@ describe("Integrations test UserService", () => {
     beforeEach(async () => {
         await services.seedService.executeSEED();
         adminLogin = await TestHelpers.loginAsAdmin(app);
-        clientRole = await TestHelpers.getRepositories(module).repoGeneralRole.findOneBy({ name: GeneralRoles.client })
+        clientRole = await TestHelpers.getRepositories(module).generalRoleRepository.findOneBy({ name: GeneralRoles.client })
     })
 
     // Closing the nest aplication at the end of the tests
     afterAll(async () => {
-        await app.close()
+        await TestDatabaseManager.cleanUp();
     });
 
     // Reseting mocks after each test
@@ -107,6 +107,25 @@ describe("Integrations test UserService", () => {
         expect(response.body.length).toBe(3)
     })
 
+    it("GET /user/:term", async () => {
+        const [{ user }] = await UserMother.createManyUsers(services.userService, 1);
+        const response = await request(app.getHttpServer())
+            .get(`/user/${user.id}`)
+            .set('Authorization', `Bearer ${adminLogin?.token}`);
+        
+        expect(response.status).toBe(200)
+        expect(response.body).toMatchObject({
+            full_name: user.full_name,
+            email: user.email,
+            phone: user.phone,
+            role: {
+                id: clientRole?.id,
+                name: clientRole?.name
+            },
+        })
+    })
+
+
 
     it("GET /user/profile", async () => {
         await UserMother.createManyUsers(services.userService, 2);
@@ -121,12 +140,12 @@ describe("Integrations test UserService", () => {
 
     it("UPDATE /user", async () => {
         const [{ user, token }] = await UserMother.createManyUsers(services.userService, 1);
+
         const dtoUpdate = { full_name: "jhonsito doe" }
         const response = await request(app.getHttpServer())
             .patch(`/user/${user.id}`)
             .set('Authorization', `Bearer ${token}`)
             .send(dtoUpdate)
-
         expect(response.status).toBe(200)
         expect(response.body).toMatchObject(
             {

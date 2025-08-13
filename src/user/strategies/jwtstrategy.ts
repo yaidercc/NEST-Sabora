@@ -24,6 +24,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
         const user = await this.userRepository
             .createQueryBuilder("user")
             .leftJoinAndSelect("user.role", "role")
+            .leftJoinAndSelect("user.employee", "employee", "employee.is_active = :employeeActive", { employeeActive: true })
             .addSelect("user.is_active")
             .where("user.id=:id", { id })
             .getOne()

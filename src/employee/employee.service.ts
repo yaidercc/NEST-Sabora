@@ -1,14 +1,15 @@
-import { Injectable, Logger, NotFoundException } from '@nestjs/common';
+import { BadRequestException, ConflictException, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { CreateEmployeeDto } from './dto/create-employee.dto';
 import { UpdateEmployeeDto } from './dto/update-employee.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Employee } from './entities/employee.entity';
-import { DataSource, Repository } from 'typeorm';
+import { DataSource, Not, Repository } from 'typeorm';
 import { EmployeeRole } from './entities/employee_role.entity';
 import { handleException } from 'src/common/handleErrors';
 import { User } from 'src/user/entities/user.entity';
 import { validate as isUUID } from "uuid"
 import { PaginationDto } from 'src/common/dtos/pagination.dto';
+import { isActive } from 'src/common/isActive';
 
 @Injectable()
 export class EmployeeService {
@@ -27,11 +28,16 @@ export class EmployeeService {
       await queryRunner.connect();
       queryRunner.startTransaction()
 
+
       const user = await queryRunner.manager.findOneBy(User, { id: createEmployeeDto.user_id })
       if (!user) throw new NotFoundException(`User not found`)
 
+      const existsEmployee = await queryRunner.manager.findOneBy(Employee, { user: user })
+      if (existsEmployee) throw new ConflictException('User already exits as an employee')
+
       const employee_role = await queryRunner.manager.findOneBy(EmployeeRole, { id: createEmployeeDto.employee_role_id })
       if (!employee_role) throw new NotFoundException(`employee role not found`)
+
 
       const employee = queryRunner.manager.create(Employee, {
         ...createEmployeeDto,
@@ -83,17 +89,58 @@ export class EmployeeService {
     return employee
   }
 
-  update(id: number, updateEmployeeDto: UpdateEmployeeDto) {
-    return `This action updates a #${id} employee`;
+  async update(id: string, updateEmployeeDto: UpdateEmployeeDto) {
+
+    try {
+      if (!updateEmployeeDto || typeof updateEmployeeDto !== 'object') {
+        throw new BadRequestException("No data provided to update");
+      }
+
+      const { employee_role_id = "", ...toUpdate } = updateEmployeeDto
+      const employee = await this.employeeRepository.preload({
+        id,
+        ...updateEmployeeDto
+      })
+
+      if (!employee) throw new NotFoundException("Employee not found")
+      await isActive(id, this.employeeRepository);
+
+      if (toUpdate.user_id) {
+        const findRepeatEmployee = await this.employeeRepository.findOne({
+          where: {
+            user: {
+              id: toUpdate.user_id
+            },
+            id: Not(id)
+          }
+        })
+        if(findRepeatEmployee){
+          throw new ConflictException('User already exits as an employee')
+        }
+      }
+
+      if (employee_role_id.trim()) {
+        const employee_role = await this.employeeRoleRepository.findOneBy({ id: employee_role_id })
+        if (!employee_role) throw new NotFoundException("The specified employee role does not exists")
+        employee.employee_role = employee_role
+      }
+
+      await this.employeeRepository.save(employee)
+
+      return await this.findOne(id)
+    } catch (error) {
+      handleException(error, this.logger)
+    }
   }
+
 
   remove(id: number) {
     return `This action removes a #${id} employee`;
   }
 
   async removeAllEmployees() {
-    const queryBuilder = await this.employeeRepository.createQueryBuilder()
-    queryBuilder
+    const queryBuilder = this.employeeRepository.createQueryBuilder()
+    await queryBuilder
       .delete()
       .where({})
       .execute()

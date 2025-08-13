@@ -1,19 +1,11 @@
-import { Test, TestingModule } from "@nestjs/testing"
-import { UserService } from "../user.service"
-import { Repository } from "typeorm";
+import { TestingModule } from "@nestjs/testing";
 import { User } from "../entities/user.entity";
-import { getRepositoryToken, TypeOrmModule } from "@nestjs/typeorm";
 import { UserMother } from "./userMother";
-import { GeneralRole } from "../entities/general_role.entity";
 import { JwtService } from "@nestjs/jwt";
-import { UserModule } from "../user.module";
-import { JoiEnvValidation } from "src/config/joi.validation";
-import { EnvConfiguration } from "src/config/env.config";
-import { ConfigModule } from "@nestjs/config";
 import { compareSync } from "bcrypt";
 import { GeneralRoles } from "src/common/enums/roles";
-import { Employee } from "src/employee/entities/employee.entity";
-import { EmployeeRole } from "src/employee/entities/employee_role.entity";
+import { TestDatabaseManager } from "src/common/tests/test-database";
+import { TestHelpers, TestRepositories, TestServices } from "src/common/tests/test-helpers";
 
 
 jest.mock('@sendgrid/mail', () => ({
@@ -22,40 +14,21 @@ jest.mock('@sendgrid/mail', () => ({
 }));
 
 describe("Integrations test UserService", () => {
-    let userService: UserService;
-    let userRepository: Repository<User>
-    let generalRoleRepository: Repository<GeneralRole>
+    let services: TestServices
+    let repositories: TestRepositories
     let module: TestingModule;
 
     beforeAll(async () => {
-        module = await Test.createTestingModule({
-            imports: [
-                ConfigModule.forRoot({
-                    envFilePath: ".env.test",
-                    load: [EnvConfiguration],
-                    validationSchema: JoiEnvValidation
-                }),
-                TypeOrmModule.forRoot({
-                    type: "sqlite",
-                    database: ":memory:",
-                    entities: [User, GeneralRole, Employee, EmployeeRole],
-                    synchronize: true,
-                    dropSchema: true
-                }),
-                TypeOrmModule.forFeature([User, GeneralRole, Employee, EmployeeRole]),
-                UserModule
-            ],
-            providers: [UserService, JwtService]
-        }).compile()
+        module = await TestDatabaseManager.initializeInt();
 
-        userService = module.get<UserService>(UserService);
-        userRepository = module.get<Repository<User>>(getRepositoryToken(User))
-        generalRoleRepository = module.get<Repository<GeneralRole>>(getRepositoryToken(GeneralRole))
-        await UserMother.seedRoles(generalRoleRepository)
+        services = TestHelpers.getServices(module)
+        repositories = TestHelpers.getRepositories(module)
+
+        await UserMother.seedRoles(repositories.generalRoleRepository)
     })
 
     beforeEach(async () => {
-        await userRepository.clear()
+        await repositories.userRepository.clear()
     })
 
     afterAll(async () => {
@@ -67,9 +40,9 @@ describe("Integrations test UserService", () => {
         const fakeToken = 'fake-jwt'
         jest.spyOn(JwtService.prototype, "sign").mockReturnValue(fakeToken)
 
-        const response = await userService.create(userDTO)
+        const response = await services.userService.create(userDTO)
 
-        const clientRole = await generalRoleRepository.findOneBy({ name: GeneralRoles.client })
+        const clientRole = await repositories.generalRoleRepository.findOneBy({ name: GeneralRoles.client })
         expect(response).toBeDefined()
         expect(response).toMatchObject({
             user: {
@@ -88,9 +61,9 @@ describe("Integrations test UserService", () => {
         const fakeToken = 'fake-jwt'
         jest.spyOn(JwtService.prototype, "sign").mockReturnValue(fakeToken)
 
-        const userCreated = await userService.create(userDTO)
+        const userCreated = await services.userService.create(userDTO)
 
-        const response = await userService.login({ username: userDTO.username, password: userDTO.password });
+        const response = await services.userService.login({ username: userDTO.username, password: userDTO.password });
 
         expect(response).toMatchObject({
             user: {
@@ -106,8 +79,8 @@ describe("Integrations test UserService", () => {
 
 
     it('should return users created', async () => {
-        await UserMother.createManyUsers(userService, 2);
-        const response = await userService.findAll();
+        await UserMother.createManyUsers(services.userService, 2);
+        const response = await services.userService.findAll();
 
         expect(response.length).toBe(2)
     });
@@ -116,9 +89,9 @@ describe("Integrations test UserService", () => {
         const userDTO = UserMother.dto();
         const dtoUpdate = { full_name: "jhonsito doe" }
 
-        const userCreated = await userService.create(userDTO)
+        const userCreated = await services.userService.create(userDTO)
 
-        const response = await userService.update(userCreated?.user.id!, dtoUpdate);
+        const response = await services.userService.update(userCreated?.user.id!, dtoUpdate);
 
         const { password, ...restUserDTO } = userDTO
 
@@ -134,19 +107,19 @@ describe("Integrations test UserService", () => {
 
     it('should set a temporal password and send it to the user mail', async () => {
         const userDTO = UserMother.dto();
-        const userCreated = await userService.create(userDTO)
+        const userCreated = await services.userService.create(userDTO)
 
-        const userBeforeCange = await userRepository
+        const userBeforeCange = await repositories.userRepository
             .createQueryBuilder("user")
             .addSelect("user.password")
             .where("user.id = :id", { id: userCreated?.user.id })
             .getOne();
 
-        await userService.requestTempPassword({
+        await services.userService.requestTempPassword({
             email: userDTO.email,
             username: userDTO.username
         })
-        const userAfterChange = await userRepository
+        const userAfterChange = await repositories.userRepository
             .createQueryBuilder("user")
             .addSelect("user.password ")
             .addSelect("user.is_temporal_password")
@@ -161,21 +134,21 @@ describe("Integrations test UserService", () => {
 
     it('should update an user password', async () => {
         const userDTO = UserMother.dto();
-        const userCreated = await userService.create(userDTO)
+        const userCreated = await services.userService.create(userDTO)
 
-        const userBeforeCange = await userRepository
+        const userBeforeCange = await repositories.userRepository
             .createQueryBuilder("user")
             .addSelect("user.password")
             .where("user.id = :id", { id: userCreated?.user.id })
             .getOne();
 
-        await userService.changePassword({
+        await services.userService.changePassword({
             password: "Yaidercc123*",
             repeatPassword: "Yaidercc123*"
         },
             userCreated?.user as User
         )
-        const userAfterChange = await userRepository
+        const userAfterChange = await repositories.userRepository
             .createQueryBuilder("user")
             .addSelect("user.password")
             .addSelect("user.is_temporal_password")
@@ -191,11 +164,11 @@ describe("Integrations test UserService", () => {
 
     it('should delete an user', async () => {
         const userDTO = UserMother.dto();
-        const userCreated = await userService.create(userDTO)
+        const userCreated = await services.userService.create(userDTO)
 
-        await userService.remove(userCreated?.user.id!)
+        await services.userService.remove(userCreated?.user.id!)
 
-        const userAfterChange = await userRepository
+        const userAfterChange = await repositories.userRepository
             .createQueryBuilder("user")
             .addSelect("user.password")
             .where("user.id = :id", { id: userCreated?.user.id })

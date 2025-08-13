@@ -8,16 +8,19 @@ export const mockEmployeeRepo = {
     preload: jest.fn(),
     findOne: jest.fn(),
     find: jest.fn(),
+    findOneBy: jest.fn(),
     createQueryBuilder: jest.fn(),
 }
 
 export const mockEmployeeRoleRepo = {
+    findOneBy: jest.fn().mockReturnThis()
 }
 
 export const mockManager = {
     findOneBy: jest.fn().mockReturnThis(),
     create: jest.fn().mockReturnValue({ id: employeeId, ...EmployeeMother.dto() }),
     save: jest.fn().mockReturnThis(),
+   
 }
 
 export const mockDataSource = {

@@ -1,104 +1,40 @@
-import { SeedService } from "src/seed/seed.service";
-import { EmployeeService } from "../employee.service";
-import { Repository } from "typeorm";
-import { User } from "src/user/entities/user.entity";
 import { GeneralRole } from "src/user/entities/general_role.entity";
-import { Test, TestingModule } from "@nestjs/testing";
+import { TestingModule } from "@nestjs/testing";
 import { INestApplication } from "@nestjs/common";
-import { ConfigModule } from "@nestjs/config";
-import { getRepositoryToken, TypeOrmModule } from "@nestjs/typeorm";
-import { EnvConfiguration } from "src/config/env.config";
-import { JoiEnvValidation } from "src/config/joi.validation";
-import { Employee } from "../entities/employee.entity";
-import { EmployeeRole } from "../entities/employee_role.entity";
-import { UserModule } from "src/user/user.module";
-import { SeedModule } from "src/seed/seed.module";
-import { EmployeeModule } from "../employee.module";
-import { UserService } from "src/user/user.service";
-import { JwtService } from "@nestjs/jwt";
 import * as request from 'supertest';
 import { EmployeeRoles, GeneralRoles } from "src/common/enums/roles";
-import { initialData } from "src/seed/data/seed-data";
 import { UserMother } from "src/user/tests/userMother";
 import { EmployeeMother } from "./employeeMother";
+import { AdminLogin, TestHelpers, TestRepositories, TestServices } from "src/common/tests/test-helpers";
+import { TestDatabaseManager } from "src/common/tests/test-database";
 
 describe("Integrations test EmployeeService", () => {
-    let employeeService: EmployeeService;
-    let seedService: SeedService;
-    let userService: UserService;
-    let userRepository: Repository<User>
-    let repoGeneralRole: Repository<GeneralRole>
     let module: TestingModule;
     let app: INestApplication
     let clientRole: GeneralRole | null
-    let adminLogin: {
-        user: {
-            id: string,
-            full_name: string,
-            email: string,
-            phone: string,
-            is_active: boolean,
-            role: GeneralRole
-        }, token: string
-    } | undefined
-    let employeeRepository: Repository<Employee>
-    let employeeRoleRepository: Repository<EmployeeRole>
+    let adminLogin: AdminLogin | undefined
+    let services: TestServices
+    let repositories: TestRepositories
     let employeeRoles;
 
     beforeAll(async () => {
-        module = await Test.createTestingModule({
-            imports: [
-                ConfigModule.forRoot({
-                    envFilePath: ".env.test",
-                    load: [EnvConfiguration],
-                    validationSchema: JoiEnvValidation
-                }),
-                TypeOrmModule.forRoot({
-                    type: "postgres",
-                    host: "localhost",
-                    port: +process.env.DB_PORT!,
-                    database: process.env.DB_NAME,
-                    username: process.env.DB_USERNAME,
-                    password: process.env.DB_PASSWORD,
-                    entities: [User, GeneralRole, Employee, EmployeeRole],
-                    synchronize: true,
-                    dropSchema: true
-                }),
-                TypeOrmModule.forFeature([User, GeneralRole]),
-                UserModule,
-                SeedModule,
-                EmployeeModule
-            ],
-            providers: [EmployeeService, JwtService, SeedService]
-        }).compile()
+        const testDB = await TestDatabaseManager.initializeE2E()
+        app = testDB.app
+        module = testDB.module
 
-        userService = module.get<UserService>(UserService);
-        userRepository = module.get<Repository<User>>(getRepositoryToken(User))
-        employeeService = module.get<EmployeeService>(EmployeeService);
-        employeeRepository = module.get<Repository<Employee>>(getRepositoryToken(Employee))
-        employeeRoleRepository = module.get<Repository<EmployeeRole>>(getRepositoryToken(EmployeeRole))
-        repoGeneralRole = module.get<Repository<GeneralRole>>(getRepositoryToken(GeneralRole))
-        seedService = module.get<SeedService>(SeedService)
-
-        app = module.createNestApplication()
-        await app.init()
+        services = TestHelpers.getServices(module)
+        repositories = TestHelpers.getRepositories(module)
     })
 
     beforeEach(async () => {
-        await employeeRepository.clear()
-        await seedService.executeSEED();
-
-        const loginResponse = await request(app.getHttpServer())
-            .post("/user/login")
-            .send({ username: initialData.user.username, password: "Jhondoe123*" });
-
-        adminLogin = loginResponse.body;
-        clientRole = await repoGeneralRole.findOneBy({ name: GeneralRoles.client })
-        employeeRoles = await EmployeeMother.seedRoles(employeeRoleRepository)
+        await services.seedService.executeSEED();
+        adminLogin = await TestHelpers.loginAsAdmin(app);
+        clientRole = await repositories.generalRoleRepository.findOneBy({ name: GeneralRoles.client })
+        employeeRoles = await EmployeeMother.seedRoles(repositories.employeeRoleRepository)
     })
 
     afterAll(async () => {
-        await app.close()
+        await TestDatabaseManager.cleanUp();
     });
 
     afterEach(async () => {
@@ -106,7 +42,7 @@ describe("Integrations test EmployeeService", () => {
     });
 
     it("POST /employee", async () => {
-        const [{ user }] = await UserMother.createManyUsers(userService, 1)
+        const [{ user }] = await UserMother.createManyUsers(services.userService, 1)
         const employeeDTO = EmployeeMother.dto({ user_id: user.id, employee_role_id: employeeRoles[EmployeeRoles.cashier] })
 
         const response = await request(app.getHttpServer())
@@ -127,7 +63,7 @@ describe("Integrations test EmployeeService", () => {
     })
 
     it("GET /employee/:term", async () => {
-        const [employee] = await EmployeeMother.createManyEmployees(employeeService, userService, 1, employeeRoles)
+        const [employee] = await EmployeeMother.createManyEmployees(services.employeesService, services.userService, 1, employeeRoles)
 
         const response = await request(app.getHttpServer())
             .get(`/employee/${employee.id}`)
@@ -148,17 +84,30 @@ describe("Integrations test EmployeeService", () => {
 
     })
 
-
     it("GET /employee", async () => {
-        await EmployeeMother.createManyEmployees(employeeService, userService, 2, employeeRoles)
+        await EmployeeMother.createManyEmployees(services.employeesService, services.userService, 2, employeeRoles)
 
         const response = await request(app.getHttpServer())
             .get(`/employee/?limit=${10}&offset=${0}`)
             .set('Authorization', `Bearer ${adminLogin?.token}`)
-        
+
         expect(response.status).toBe(200)
         expect(response.body).toBeDefined()
         expect(response.body.length).toBe(2)
 
     })
+
+    it('PATCH /employee', async () => {
+        const [employee] = await EmployeeMother.createManyEmployees(services.employeesService, services.userService, 1, employeeRoles)
+        const dtoUpdate = { hiring_date: "2022-10-12" }
+
+        const response = await request(app.getHttpServer())
+            .patch(`/employee/${employee.id}`)
+            .set('Authorization', `Bearer ${adminLogin?.token}`)
+            .send(dtoUpdate)
+        expect(response.status).toBe(200)
+        expect(response.body.hiring_date).toBe(dtoUpdate.hiring_date)
+
+
+    });
 })

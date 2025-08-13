@@ -13,11 +13,12 @@
     "start:debug": "nest start --debug --watch",
     "start:prod": "node dist/main",
     "lint": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix",
-    "test": "jest --watchAll",
+    "test": "jest --watchAll ",
     "test:watch": "jest --watch",
     "test:cov": "jest --coverage",
+    "test:all": "yarn test --watchAll=false && yarn test:e2e",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
-    "test:e2e": "jest --testMatch=**/*.e2e.spec.ts --runInBand --detectOpenHandles --forceExit",
+    "test:e2e": "jest --config jest-e2e.config.ts --runInBand --detectOpenHandles --forceExit --testTimeout=60000",
     "test:int": "jest --testMatch=**/*.int.spec.ts",
     "test:unit": "jest --testMatch=**/*.unit.spec.ts",
     "docker:dev": "docker compose down -v && docker compose --env-file .env up -d",
@@ -88,9 +89,14 @@
       "ts"
     ],
     "rootDir": "src",
-    "testMatch": [
-      "**/?(*.)+(spec|test).ts"
-    ],
+   "testMatch": [
+    "**/*.unit.spec.ts",      
+    "**/*.int.spec.ts",       
+    "**/*.spec.ts"           
+  ],
+  "testPathIgnorePatterns": [
+    ".*\\.e2e\\.spec\\.ts$"  
+  ],
     "transform": {
       "^.+\\.(t|j)s$": "ts-jest"
     },

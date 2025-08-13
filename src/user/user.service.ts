@@ -15,6 +15,7 @@ import * as sgMail from '@sendgrid/mail'; // sgMail library to send mails with h
 import { ConfigService } from '@nestjs/config';
 import { NewPassword, RequestTempPasswordDto } from './dto/reset.password.dto';
 import { GeneralRoles } from 'src/common/enums/roles';
+import { isActive } from 'src/common/isActive';
 
 
 @Injectable()
@@ -124,7 +125,7 @@ export class UserService {
 
       if (!bdUser) throw new NotFoundException("User not found")
       const { id } = user
-      await this.isUserActive(id);
+      await isActive(id, this.userRepository);
 
       bdUser.password = hashSync(password, genSaltSync());
       bdUser.is_temporal_password = false
@@ -177,7 +178,7 @@ export class UserService {
 
       if (!user) throw new NotFoundException("User not found")
 
-      await this.isUserActive(id);
+      await isActive(id, this.userRepository);
 
       if (roleId.trim()) {
         const role = await this.generalRoleRepository.findOneBy({ id: roleId })
@@ -201,8 +202,8 @@ export class UserService {
   }
 
   async removeAllUsers() {
-    const queryBuilder = await this.userRepository.createQueryBuilder()
-    queryBuilder
+    const queryBuilder = this.userRepository.createQueryBuilder()
+    await queryBuilder
       .delete()
       .where({})
       .execute()
@@ -242,16 +243,5 @@ export class UserService {
     return password;
   }
 
-  private async isUserActive(id: string) {
 
-    const isUserActive =
-      await this.userRepository
-        .createQueryBuilder("user")
-        .select("user.is_active")
-        .where("user.id=:id", { id })
-        .getRawOne()
-    // getOne() is not useful in this case 'cause i need just one attr not the whole entity
-
-    if (isUserActive?.is_active) throw new NotFoundException("User is inactive talk with the admin")
-  }
 }

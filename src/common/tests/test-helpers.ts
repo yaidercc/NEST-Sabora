@@ -22,7 +22,7 @@ export interface TestRepositories {
     userRepository: Repository<User>
     employeeRepository: Repository<Employee>
     employeeRoleRepository: Repository<EmployeeRole>
-    repoGeneralRole: Repository<GeneralRole>
+    generalRoleRepository: Repository<GeneralRole>
 }
 
 export interface AdminLogin {
@@ -41,7 +41,7 @@ export class TestHelpers {
             userRepository: module.get<Repository<User>>(getRepositoryToken(User)),
             employeeRepository: module.get<Repository<Employee>>(getRepositoryToken(Employee)),
             employeeRoleRepository: module.get<Repository<EmployeeRole>>(getRepositoryToken(EmployeeRole)),
-            repoGeneralRole: module.get<Repository<GeneralRole>>(getRepositoryToken(GeneralRole))
+            generalRoleRepository: module.get<Repository<GeneralRole>>(getRepositoryToken(GeneralRole))
         }
     }
     static getServices(module: TestingModule): TestServices {

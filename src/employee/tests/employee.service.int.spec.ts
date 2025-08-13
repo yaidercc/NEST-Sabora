@@ -1,68 +1,27 @@
-import { Test, TestingModule } from "@nestjs/testing"
-import { Repository } from "typeorm";
-import { getRepositoryToken, TypeOrmModule } from "@nestjs/typeorm";
+import { TestingModule } from "@nestjs/testing";
 import { EmployeeMother } from "./employeeMother";
-import { JoiEnvValidation } from "src/config/joi.validation";
-import { EnvConfiguration } from "src/config/env.config";
-import { ConfigModule } from "@nestjs/config";
-import { Employee } from "../entities/employee.entity";
-import { EmployeeRole } from "../entities/employee_role.entity";
-import { EmployeeModule } from "../employee.module";
-import { EmployeeService } from "../employee.service";
-import { User } from "src/user/entities/user.entity";
-import { GeneralRole } from "src/user/entities/general_role.entity";
 import { UserMother } from "src/user/tests/userMother";
-import { UserService } from "src/user/user.service";
-import { UserModule } from "src/user/user.module";
 import { EmployeeRoles } from "src/common/enums/roles";
+import { TestDatabaseManager } from "src/common/tests/test-database";
+import { TestHelpers, TestRepositories, TestServices } from "src/common/tests/test-helpers";
 
 
 describe("Integrations test EmployeeService", () => {
-    let employeeService: EmployeeService;
-    let employeeRepository: Repository<Employee>
-    let employeeRoleRepository: Repository<EmployeeRole>
+    let services: TestServices
+    let repositories: TestRepositories
     let module: TestingModule;
-    let userService: UserService;
-    let userRepository: Repository<User>
-    let generalRoleRepository: Repository<GeneralRole>
     let employeeRoles;
 
     beforeAll(async () => {
-        module = await Test.createTestingModule({
-            imports: [
-                ConfigModule.forRoot({
-                    envFilePath: ".env.test",
-                    load: [EnvConfiguration],
-                    validationSchema: JoiEnvValidation
-                }),
-                TypeOrmModule.forRoot({
-                    type: "sqlite",
-                    database: ":memory:",
-                    entities: [Employee, EmployeeRole, User, GeneralRole],
-                    synchronize: true,
-                    dropSchema: true
-                }),
-                TypeOrmModule.forFeature([Employee, EmployeeRole]),
-                EmployeeModule,
-                UserModule
-            ],
-            providers: [UserService, EmployeeService]
-        }).compile()
-
-        userService = module.get<UserService>(UserService);
-        userRepository = module.get<Repository<User>>(getRepositoryToken(User))
-        employeeService = module.get<EmployeeService>(EmployeeService);
-        employeeRepository = module.get<Repository<Employee>>(getRepositoryToken(Employee))
-        employeeRoleRepository = module.get<Repository<EmployeeRole>>(getRepositoryToken(EmployeeRole))
-        generalRoleRepository = module.get<Repository<GeneralRole>>(getRepositoryToken(GeneralRole))
-        employeeRoles = await EmployeeMother.seedRoles(employeeRoleRepository)
-
-        await UserMother.seedRoles(generalRoleRepository)
-
+        module = await TestDatabaseManager.initializeInt();
+        services = TestHelpers.getServices(module)
+        repositories = TestHelpers.getRepositories(module)
+        employeeRoles = await EmployeeMother.seedRoles(repositories.employeeRoleRepository)
+        await UserMother.seedRoles(repositories.generalRoleRepository)
     })
 
     beforeEach(async () => {
-        await employeeRepository.clear()
+        await repositories.employeeRepository.clear()
     })
 
     afterAll(async () => {
@@ -71,11 +30,11 @@ describe("Integrations test EmployeeService", () => {
 
     it("Should create an employee", async () => {
         const userDTO = UserMother.dto();
-        const responseUser = await userService.create(userDTO)
+        const responseUser = await services.userService.create(userDTO)
 
         const employeeDTO = EmployeeMother.dto({ user_id: responseUser?.user.id!, employee_role_id: employeeRoles[EmployeeRoles.cashier] })
 
-        const responseEmployee = await employeeService.create(employeeDTO)
+        const responseEmployee = await services.employeesService.create(employeeDTO)
 
         expect(responseEmployee?.id).toBeDefined()
         expect(responseEmployee?.hiring_date).toBe(employeeDTO.hiring_date)
@@ -90,8 +49,8 @@ describe("Integrations test EmployeeService", () => {
 
 
     it("Should return an employee", async () => {
-        const [employee] = await EmployeeMother.createManyEmployees(employeeService, userService, 1, employeeRoles)
-        const response = await employeeService.findOne(employee.id)
+        const [employee] = await EmployeeMother.createManyEmployees(services.employeesService, services.userService, 1, employeeRoles)
+        const response = await services.employeesService.findOne(employee.id)
         expect(response).toMatchObject({
             id: employee.id,
             hiring_date: employee.hiring_date,
@@ -105,13 +64,24 @@ describe("Integrations test EmployeeService", () => {
     })
 
     it("should return all employees", async () => {
-        await EmployeeMother.createManyEmployees(employeeService, userService, 2, employeeRoles)
+        await EmployeeMother.createManyEmployees(services.employeesService, services.userService, 2, employeeRoles)
 
-        const response = await employeeService.findAll({ limit: 10, offset: 0 })
+        const response = await services.employeesService.findAll({ limit: 10, offset: 0 })
 
         expect(response).toBeDefined()
         expect(response.length).toBe(2)
 
     })
+
+    it('should update an employee', async () => {
+        const [employee] = await EmployeeMother.createManyEmployees(services.employeesService, services.userService, 1, employeeRoles)
+        const dtoUpdate = { hiring_date: "2022-10-12" }
+
+        const response = await services.employeesService.update(employee.id, dtoUpdate)
+
+        expect(response?.hiring_date).toBe(dtoUpdate.hiring_date)
+
+
+    });
 })
 

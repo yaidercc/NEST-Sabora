@@ -20,7 +20,7 @@ export class TestDatabaseManager {
     private static app: INestApplication;
     private static initialized = false;
 
-    static async initialize(): Promise<{ module: TestingModule; app: INestApplication }> {
+    static async initializeE2E(): Promise<{ module: TestingModule; app: INestApplication }> {
         if (!this.initialized) {
             this.module = await Test.createTestingModule({
                 imports: [
@@ -57,6 +57,32 @@ export class TestDatabaseManager {
             app: this.app
         }
     }
+
+    static async initializeInt(): Promise<TestingModule> {
+        this.module = await Test.createTestingModule({
+            imports: [
+                ConfigModule.forRoot({
+                    envFilePath: ".env.test",
+                    load: [EnvConfiguration],
+                    validationSchema: JoiEnvValidation
+                }),
+                TypeOrmModule.forRoot({
+                    type: "sqlite",
+                    database: ":memory:",
+                    entities: [Employee, EmployeeRole, User, GeneralRole],
+                    synchronize: true,
+                    dropSchema: true
+                }),
+                TypeOrmModule.forFeature([Employee, EmployeeRole, User, GeneralRole]),
+                EmployeeModule,
+                UserModule
+            ],
+            providers: [EmployeeService, JwtService, SeedService]
+        }).compile()
+
+        return this.module
+    }
+
 
     static async cleanUp(): Promise<void> {
         if (this.app) {

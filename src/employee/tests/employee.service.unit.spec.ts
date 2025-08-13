@@ -48,6 +48,12 @@ describe("Unit EmployeeServices tests", () => {
 
         mockManager.create.mockReturnValue(employeeCreated)
         mockManager.save.mockReturnValue(employeeCreated)
+        mockManager.findOneBy.mockImplementation((entity, criteria) => {
+            if (entity.name == "Employee") {
+                return null
+            }
+            return this
+        })
 
         const response = await employeeService.create(employeeDTO)
 
@@ -82,6 +88,7 @@ describe("Unit EmployeeServices tests", () => {
         const employee1Created = { ...EmployeeMother.dto(), id: employeeId }
         const employee2Created = { ...EmployeeMother.dto({ user_id: uuid(), employee_role_id: uuid() }), id: employeeId }
 
+
         mockEmployeeRepo.find.mockReturnValue([
             employee1Created,
             employee2Created
@@ -94,6 +101,36 @@ describe("Unit EmployeeServices tests", () => {
             employee1Created,
             employee2Created
         ])
+
+    });
+
+
+    it('should update an employee', async () => {
+        const originalEmployee = { ...EmployeeMother.dto(), id: employeeId }
+        const dtoUpdate = { hiring_date: "2022-10-12" }
+        const updatedEmployee = { ...originalEmployee, ...dtoUpdate }
+
+
+        const mockQueryBuilder = {
+            select: jest.fn().mockReturnThis(),
+            where: jest.fn().mockReturnThis(),
+            leftJoinAndSelect: jest.fn().mockReturnThis(),
+            getRawOne: jest.fn().mockResolvedValue({is_active: true}),
+            getOne: jest.fn().mockResolvedValue(updatedEmployee)
+        }
+
+        mockEmployeeRepo.createQueryBuilder.mockReturnValue(mockQueryBuilder)
+
+        mockEmployeeRepo.preload.mockReturnValue(updatedEmployee)
+        mockEmployeeRepo.save.mockReturnValue(updatedEmployee)
+
+        const response = await employeeService.update(employeeId, dtoUpdate)
+
+        expect(mockEmployeeRepo.preload).toHaveBeenCalled()
+        expect(mockEmployeeRepo.save).toHaveBeenCalled()
+        expect(mockEmployeeRepo.createQueryBuilder).toHaveBeenCalled()
+        expect(response).toMatchObject(updatedEmployee)
+
 
     });
 
