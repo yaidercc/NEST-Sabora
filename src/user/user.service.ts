@@ -16,6 +16,7 @@ import { ConfigService } from '@nestjs/config';
 import { NewPassword, RequestTempPasswordDto } from './dto/reset.password.dto';
 import { GeneralRoles } from 'src/common/enums/roles';
 import { isActive } from 'src/common/isActive';
+import { Employee } from 'src/employee/entities/employee.entity';
 
 
 @Injectable()
@@ -26,6 +27,8 @@ export class UserService {
     private readonly userRepository: Repository<User>,
     @InjectRepository(GeneralRole)
     private readonly generalRoleRepository: Repository<GeneralRole>,
+    @InjectRepository(Employee)
+    private readonly employeeRepository: Repository<Employee>,
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService
 
@@ -125,7 +128,10 @@ export class UserService {
 
       if (!bdUser) throw new NotFoundException("User not found")
       const { id } = user
-      await isActive(id, this.userRepository);
+      const is_active = await isActive(id, this.userRepository);
+      if (!is_active) {
+        throw new BadRequestException("User is inactive")
+      }
 
       bdUser.password = hashSync(password, genSaltSync());
       bdUser.is_temporal_password = false
@@ -178,7 +184,10 @@ export class UserService {
 
       if (!user) throw new NotFoundException("User not found")
 
-      await isActive(id, this.userRepository);
+      const is_active = await isActive(id, this.userRepository);
+      if (!is_active) {
+        throw new BadRequestException("User is inactive")
+      }
 
       if (roleId.trim()) {
         const role = await this.generalRoleRepository.findOneBy({ id: roleId })
@@ -194,7 +203,16 @@ export class UserService {
   }
 
   async remove(id: string) {
-    return await this.userRepository.update(id, { is_active: false })
+    try {
+      const user = await this.userRepository.findOneBy({ id });
+      if (!user) throw new NotFoundException("User not found")
+
+      if (user.employee) await this.employeeRepository.update(id, { is_active: false })
+
+      return await this.userRepository.update(id, { is_active: false })
+    } catch (error) {
+      handleException(error, this.logger)
+    }
   }
 
   generateJWT(payload: JwtPayload) {

@@ -108,6 +108,27 @@ describe("Integrations test EmployeeService", () => {
         expect(response.status).toBe(200)
         expect(response.body.hiring_date).toBe(dtoUpdate.hiring_date)
 
+    });
+
+
+    it('DELETE /employee', async () => {
+        const [employee] = await EmployeeMother.createManyEmployees(services.employeesService, services.userService, 1, employeeRoles)
+
+
+        const response = await request(app.getHttpServer())
+            .delete(`/employee/${employee.id}`)
+            .set('Authorization', `Bearer ${adminLogin?.token}`)
+
+        
+        const employeeAfterChange = await repositories.employeeRepository
+            .createQueryBuilder("employee")
+            .addSelect("employee.is_active")
+            .where("employee.id = :id", { id: employee.id })
+            .getOne();
+
+        expect(response.status).toBe(200)
+        expect(employee?.is_active).toBeTruthy()
+        expect(employeeAfterChange?.is_active).toBeFalsy()
 
     });
 })

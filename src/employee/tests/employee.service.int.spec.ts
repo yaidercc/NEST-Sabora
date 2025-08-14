@@ -83,5 +83,21 @@ describe("Integrations test EmployeeService", () => {
 
 
     });
+
+    it('should delete an employee', async () => {
+        const [employee] = await EmployeeMother.createManyEmployees(services.employeesService, services.userService, 1, employeeRoles)
+
+        await services.employeesService.remove(employee.id)
+        const response = await repositories.employeeRepository.createQueryBuilder("employee")
+            .select("is_active")
+            .where("employee.id=:id", {
+                id: employee.id,
+            })
+            .getOne()
+
+        expect(response?.is_active).toBeFalsy()
+
+    });
+
 })
 

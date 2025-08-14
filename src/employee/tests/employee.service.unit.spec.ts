@@ -7,6 +7,8 @@ import { getRepositoryToken } from "@nestjs/typeorm";
 import { employeeId, mockDataSource, mockEmployeeRepo, mockEmployeeRoleRepo, mockManager } from "./mocks/employee.mock";
 import { EmployeeMother } from "./employeeMother";
 import { v4 as uuid } from "uuid"
+import { User } from "src/user/entities/user.entity";
+import { mockUserRepo } from "src/user/tests/mocks/user.mocks";
 
 
 describe("Unit EmployeeServices tests", () => {
@@ -72,6 +74,7 @@ describe("Unit EmployeeServices tests", () => {
         const mockQueryBuilder = {
             leftJoinAndSelect: jest.fn().mockReturnThis(),
             where: jest.fn().mockReturnThis(),
+            andWhere: jest.fn().mockReturnThis(),
             getOne: jest.fn().mockResolvedValue(employeeCreated)
         }
 
@@ -114,8 +117,9 @@ describe("Unit EmployeeServices tests", () => {
         const mockQueryBuilder = {
             select: jest.fn().mockReturnThis(),
             where: jest.fn().mockReturnThis(),
+            andWhere: jest.fn().mockReturnThis(),
             leftJoinAndSelect: jest.fn().mockReturnThis(),
-            getRawOne: jest.fn().mockResolvedValue({is_active: true}),
+            getRawOne: jest.fn().mockResolvedValue({ is_active: true }),
             getOne: jest.fn().mockResolvedValue(updatedEmployee)
         }
 
@@ -133,6 +137,15 @@ describe("Unit EmployeeServices tests", () => {
 
 
     });
+
+    it('should delete an employee', async () => {
+        const employee1Created = { ...EmployeeMother.dto(), id: employeeId }
+        mockEmployeeRepo.findOneBy.mockReturnValue(employee1Created)
+        await employeeService.remove(employee1Created.id)
+        expect(mockEmployeeRepo.update).toHaveBeenCalled()
+
+    });
+
 
 
 

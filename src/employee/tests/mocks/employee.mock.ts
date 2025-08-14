@@ -10,6 +10,7 @@ export const mockEmployeeRepo = {
     find: jest.fn(),
     findOneBy: jest.fn(),
     createQueryBuilder: jest.fn(),
+    update: jest.fn()
 }
 
 export const mockEmployeeRoleRepo = {

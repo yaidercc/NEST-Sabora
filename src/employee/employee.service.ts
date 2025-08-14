@@ -36,7 +36,7 @@ export class EmployeeService {
       if (existsEmployee) throw new ConflictException('User already exits as an employee')
 
       const employee_role = await queryRunner.manager.findOneBy(EmployeeRole, { id: createEmployeeDto.employee_role_id })
-      if (!employee_role) throw new NotFoundException(`employee role not found`)
+      if (!employee_role) throw new NotFoundException(`Employee role not found`)
 
 
       const employee = queryRunner.manager.create(Employee, {
@@ -68,7 +68,8 @@ export class EmployeeService {
       relations: {
         user: true,
         employee_role: true
-      }
+      },
+      where: { is_active: true }
     })
   }
 
@@ -82,6 +83,7 @@ export class EmployeeService {
         .where("employee.id=:term or employee.user=:term", {
           term,
         })
+        .andWhere("employee.is_active=:is_active", { is_active: true })
         .getOne()
     }
 
@@ -103,7 +105,11 @@ export class EmployeeService {
       })
 
       if (!employee) throw new NotFoundException("Employee not found")
-      await isActive(id, this.employeeRepository);
+
+      const is_active = await isActive(id, this.employeeRepository);
+      if (!is_active) {
+        throw new BadRequestException("Employee is inactive")
+      }
 
       if (toUpdate.user_id) {
         const findRepeatEmployee = await this.employeeRepository.findOne({
@@ -114,7 +120,7 @@ export class EmployeeService {
             id: Not(id)
           }
         })
-        if(findRepeatEmployee){
+        if (findRepeatEmployee) {
           throw new ConflictException('User already exits as an employee')
         }
       }
@@ -134,8 +140,21 @@ export class EmployeeService {
   }
 
 
-  remove(id: number) {
-    return `This action removes a #${id} employee`;
+  async remove(id: string) {
+    try {
+      const employee = await this.employeeRepository.findOneBy({ id });
+
+      if (!employee) throw new NotFoundException("Employee not found")
+      const is_active = await isActive(id, this.employeeRepository);
+      if (!is_active) {
+        throw new BadRequestException("Employee is inactive")
+      }
+
+      return await this.employeeRepository.update(id, { is_active: false })
+
+    } catch (error) {
+      handleException(error, this.logger)
+    }
   }
 
   async removeAllEmployees() {

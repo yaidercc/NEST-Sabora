@@ -7,8 +7,11 @@ import { UserMother } from "./userMother";
 import { GeneralRole } from "../entities/general_role.entity";
 import { JwtModule, JwtService } from "@nestjs/jwt";
 import { ConfigService } from "@nestjs/config";
-import { mockConfigService, mockRoleRepo, mockUserRepo, userId } from "./mocks/user.mocks";
+import { mockConfigService, mockQueryBuilder, mockRoleRepo, mockUserRepo, userId } from "./mocks/user.mocks";
 import * as sgMail from '@sendgrid/mail';
+import { mockEmployeeRepo } from "src/employee/tests/mocks/employee.mock";
+import { Employee } from "src/employee/entities/employee.entity";
+import { genSaltSync, hashSync } from "bcrypt";
 
 jest.mock('@sendgrid/mail', () => ({
     setApiKey: jest.fn(),
@@ -33,6 +36,10 @@ describe("Unit UserServices tests", () => {
                 {
                     provide: getRepositoryToken(User),
                     useValue: mockUserRepo
+                },
+                {
+                    provide: getRepositoryToken(Employee),
+                    useValue: mockEmployeeRepo
                 },
                 {
                     provide: getRepositoryToken(GeneralRole),
@@ -76,6 +83,20 @@ describe("Unit UserServices tests", () => {
     });
 
 
+    it('should return an employee', async () => {
+        const userDTO = UserMother.dto()
+        const userCreateed = { ...userDTO, id: userId }
+
+        mockUserRepo.findOneBy.mockReturnValue(userCreateed)
+
+        const response = await userService.findOne(userCreateed.id)
+
+        expect(mockUserRepo.findOneBy).toHaveBeenCalled()
+        expect(response).toMatchObject(userCreateed)
+
+    });
+
+
     it('should login an user', async () => {
         const userDTO = UserMother.dto()
         const user = { id: userId, ...userDTO }
@@ -83,6 +104,15 @@ describe("Unit UserServices tests", () => {
 
         const fakeToken = 'fake-jwt';
         jest.spyOn(JwtService.prototype, "sign").mockReturnValue(fakeToken)
+
+        const mockQueryBuilderLogin = {
+            addSelect: mockQueryBuilder.addSelect.mockReturnThis(),
+            leftJoinAndSelect: mockQueryBuilder.leftJoinAndSelect.mockReturnThis(),
+            where: mockQueryBuilder.where.mockReturnThis(),
+            getOne: mockQueryBuilder.getOne.mockReturnValue({ id: userId, ...UserMother.dto(), password: hashSync(UserMother.dto().password, genSaltSync()) }),
+        }
+
+        mockUserRepo.createQueryBuilder.mockReturnValue(mockQueryBuilderLogin)
 
         const response = await userService.login({ username: userDTO.username, password: userDTO.password });
 
@@ -113,11 +143,21 @@ describe("Unit UserServices tests", () => {
         const dtoUpdate = { full_name: "jhonsito doe" }
         const updatedUser = { ...originalUser, ...dtoUpdate }
 
+
+        const mockQueryBuilderUpdate = {
+            where: mockQueryBuilder.where.mockReturnThis(),
+            select: mockQueryBuilder.select.mockReturnThis(),
+            getRawOne: mockQueryBuilder.getRawOne.mockReturnValue({ is_active: true }),
+        }
+
         mockUserRepo.preload.mockReturnValue(updatedUser)
         mockUserRepo.save.mockReturnValue(updatedUser)
         mockUserRepo.findOneBy.mockReturnValue(updatedUser)
+        mockUserRepo.createQueryBuilder.mockReturnValue(mockQueryBuilderUpdate)
+
 
         const response = await userService.update(userId, dtoUpdate)
+
         expect(mockUserRepo.preload).toHaveBeenCalled()
         expect(mockUserRepo.save).toHaveBeenCalled()
         expect(response).toMatchObject(updatedUser)
