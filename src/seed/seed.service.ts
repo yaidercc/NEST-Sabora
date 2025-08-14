@@ -8,6 +8,7 @@ import { User } from 'src/user/entities/user.entity';
 import { Employee } from 'src/employee/entities/employee.entity';
 import { EmployeeService } from 'src/employee/employee.service';
 import { EmployeeRole } from 'src/employee/entities/employee_role.entity';
+import { Table } from 'src/table/entities/table.entity';
 
 @Injectable()
 export class SeedService {
@@ -22,6 +23,8 @@ export class SeedService {
     private readonly employeeService: EmployeeService,
     @InjectRepository(EmployeeRole)
     private readonly employeeRoleRepository: Repository<EmployeeRole>,
+    @InjectRepository(Table)
+    private readonly tableRepository: Repository<Table>
   ) { }
 
   async executeSEED() {
@@ -29,6 +32,7 @@ export class SeedService {
     const adminRole = await this.insertGeneralRoles();
     await this.insertEmployeeRoles();
     await this.insertUser(adminRole)
+    await this.insertTables()
     return "SEED EXECUTED"
   }
 
@@ -37,7 +41,8 @@ export class SeedService {
     await this.userService.removeAllUsers()
     await Promise.all([
       this.generalRoleRepository.createQueryBuilder().delete().where({}).execute(),
-      this.employeeRoleRepository.createQueryBuilder().delete().where({}).execute()
+      this.employeeRoleRepository.createQueryBuilder().delete().where({}).execute(),
+      this.tableRepository.createQueryBuilder().delete().where({}).execute()
     ])
   }
 
@@ -61,6 +66,12 @@ export class SeedService {
     const employeeRoles = initialData.employeeRoles.map((item) => this.employeeRoleRepository.create(item))
     await this.employeeRoleRepository.save(employeeRoles)
     return employeeRoles[0]
+  }
+
+    private async insertTables() {
+    const tables = initialData.tables.map((item) => this.tableRepository.create(item))
+    await this.tableRepository.save(tables)
+    return tables
   }
 }
 

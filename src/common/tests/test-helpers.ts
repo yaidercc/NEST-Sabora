@@ -11,14 +11,18 @@ import * as request from 'supertest';
 import { INestApplication } from "@nestjs/common";
 import { GeneralRole } from "src/user/entities/general_role.entity";
 import { initialData } from "src/seed/data/seed-data";
+import { TableService } from "src/table/table.service";
+import { Table } from "src/table/entities/table.entity";
 
 export interface TestServices {
+    tableService: TableService;
     userService: UserService;
     seedService: SeedService;
     employeesService: EmployeeService;
 }
 
 export interface TestRepositories {
+    tableRepository: Repository<Table>
     userRepository: Repository<User>
     employeeRepository: Repository<Employee>
     employeeRoleRepository: Repository<EmployeeRole>
@@ -38,6 +42,7 @@ export interface AdminLogin {
 export class TestHelpers {
     static getRepositories(module: TestingModule): TestRepositories {
         return {
+            tableRepository: module.get<Repository<Table>>(getRepositoryToken(Table)),
             userRepository: module.get<Repository<User>>(getRepositoryToken(User)),
             employeeRepository: module.get<Repository<Employee>>(getRepositoryToken(Employee)),
             employeeRoleRepository: module.get<Repository<EmployeeRole>>(getRepositoryToken(EmployeeRole)),
@@ -46,6 +51,7 @@ export class TestHelpers {
     }
     static getServices(module: TestingModule): TestServices {
         return {
+            tableService: module.get<TableService>(TableService),
             userService: module.get<UserService>(UserService),
             seedService: module.get<SeedService>(SeedService),
             employeesService: module.get<EmployeeService>(EmployeeService)

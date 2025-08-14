@@ -158,6 +158,7 @@ export class UserService {
         user = await queryBuilder
           .leftJoinAndSelect("user.role", "role")
           .where("(LOWER(email) = :term OR LOWER(phone) = :term OR LOWER(full_name) = :term)", { term: term.toLowerCase() })
+          .addSelect("user.is_active")
           .getOne()
       }
 
@@ -206,6 +207,11 @@ export class UserService {
     try {
       const user = await this.userRepository.findOneBy({ id });
       if (!user) throw new NotFoundException("User not found")
+
+      const is_active = await isActive(id, this.userRepository);
+      if (!is_active) {
+        throw new BadRequestException("User is inactive")
+      }
 
       if (user.employee) await this.employeeRepository.update(id, { is_active: false })
 

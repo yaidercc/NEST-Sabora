@@ -7,6 +7,7 @@ import { UserModule } from './user/user.module';
 import { SeedModule } from './seed/seed.module';
 import { MailerModule } from "@nestjs-modules/mailer";
 import { EmployeeModule } from './employee/employee.module';
+import { TableModule } from './table/table.module';
 
 @Module({
   imports: [
@@ -41,7 +42,8 @@ import { EmployeeModule } from './employee/employee.module';
     }),
     UserModule,
     SeedModule,
-    EmployeeModule
+    EmployeeModule,
+    TableModule
   ],
   controllers: [],
   providers: [],
