@@ -22,7 +22,7 @@ export class TableMother {
 
         for (let j = 0; j < quantity; j++) {
             const employee = await tableService.create(TableMother.dto({
-                name: `${Array.from(roomsNames)[j]}`,
+                name: `Table ${Array.from(roomsNames)[j]}`,
                 capacity: `${Math.floor(Math.random() * 12) + 1}`
             }))
             if (employee) {

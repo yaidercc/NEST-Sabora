@@ -164,6 +164,11 @@ export class UserService {
 
       if (!user) throw new NotFoundException("User not found")
 
+      const is_active = await isActive(user.id, this.userRepository);
+      if (!is_active) {
+        throw new BadRequestException("User is inactive")
+      }
+
       return user
     } catch (error) {
       handleException(error, this.logger)

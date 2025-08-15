@@ -45,14 +45,17 @@ export class TableService {
       else {
         const queryBuilder = this.tableRepository.createQueryBuilder("table");
         table = await queryBuilder
-          .addSelect("table.is_active")
           .where("(LOWER(name) = :name", { term: term.toLowerCase() })
           .getOne()
       }
       if (!table) throw new NotFoundException("Table not found")
-      if (!table.is_active) throw new BadRequestException("Table is not available")
 
-      const { is_active, ...restTableInfo } = table
+      const is_active = await isActive(table.id, this.tableRepository);
+      if (!is_active) {
+        throw new BadRequestException("Table is not available")
+      }
+
+      const { ...restTableInfo } = table
 
       return restTableInfo
     } catch (error) {

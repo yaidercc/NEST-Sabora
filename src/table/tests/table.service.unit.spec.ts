@@ -5,6 +5,7 @@ import { TableService } from "../table.service";
 import { Table } from "../entities/table.entity";
 import { TableMother } from "./tableMother";
 import { mockTable, tableId } from "./mocks/tableMocks";
+import { v4 as uuid } from "uuid"
 
 describe("Unit UserServices tests", () => {
     let tableService: TableService;
@@ -40,6 +41,78 @@ describe("Unit UserServices tests", () => {
         expect(mockTable.create).toHaveBeenCalled()
         expect(mockTable.save).toHaveBeenCalled()
         expect(response).toMatchObject(tableDTO);
+    });
+
+
+    it('should return all tables', async () => {
+        const table1 = { id: tableId, ...TableMother.dto() }
+        const table2 = { ...TableMother.dto(), id: uuid(), name: "Table 999" }
+
+        mockTable.find.mockReturnValue([
+            table1,
+            table2
+        ])
+
+        const response = await tableService.findAll({ limit: 10, offset: 0 });
+
+        expect(mockTable.find).toHaveBeenCalled()
+        expect(response).toEqual([table1, table2]);
+    });
+
+    it('should return a table', async () => {
+        const tableDTO = { id: tableId, ...TableMother.dto() }
+
+        const mockQueryBuilder = {
+            select: jest.fn().mockReturnThis(),
+            where: jest.fn().mockReturnThis(),
+            getRawOne: jest.fn().mockResolvedValue({ is_active: true })
+        }
+
+        mockTable.createQueryBuilder.mockReturnValue(mockQueryBuilder)
+        mockTable.findOneBy.mockReturnValue(tableDTO)
+
+
+        const response = await tableService.findOne(tableId);
+
+        expect(mockTable.createQueryBuilder).toHaveBeenCalled()
+        expect(mockTable.findOneBy).toHaveBeenCalled()
+        expect(response).toEqual(tableDTO);
+    });
+
+    it('should update a table', async () => {
+        const tableDTO = { id: tableId, ...TableMother.dto() }
+        const dtoUpdate = { capacity: "5" }
+        const updatedUser = { ...tableDTO, ...dtoUpdate }
+
+        const mockQueryBuilder = {
+            select: jest.fn().mockReturnThis(),
+            where: jest.fn().mockReturnThis(),
+            getRawOne: jest.fn().mockResolvedValue({ is_active: true })
+        }
+
+        mockTable.createQueryBuilder.mockReturnValue(mockQueryBuilder)
+        mockTable.preload.mockReturnValue(updatedUser)
+
+        const response = await tableService.update(tableId, dtoUpdate);
+
+        expect(mockTable.createQueryBuilder).toHaveBeenCalled()
+        expect(mockTable.preload).toHaveBeenCalled()
+        expect(response).toEqual(updatedUser);
+    });
+
+    it('should remove a table', async () => {
+
+        const mockQueryBuilder = {
+            select: jest.fn().mockReturnThis(),
+            where: jest.fn().mockReturnThis(),
+            getRawOne: jest.fn().mockResolvedValue({ is_active: true })
+        }
+
+        mockTable.createQueryBuilder.mockReturnValue(mockQueryBuilder)
+        const response = await tableService.remove(tableId);
+
+        expect(mockTable.createQueryBuilder).toHaveBeenCalled()
+        expect(mockTable.update).toHaveBeenCalledWith(tableId, { is_active: false })
     });
 
 
