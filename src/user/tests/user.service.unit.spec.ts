@@ -83,9 +83,15 @@ describe("Unit UserServices tests", () => {
     });
 
 
-    it('should return an employee', async () => {
+    it('should return an user', async () => {
         const userDTO = UserMother.dto()
         const userCreateed = { ...userDTO, id: userId }
+        const mockQueryBuilderUpdate = {
+            where: mockQueryBuilder.where.mockReturnThis(),
+            select: mockQueryBuilder.select.mockReturnThis(),
+            getRawOne: mockQueryBuilder.getRawOne.mockReturnValue({ is_active: true }),
+        }
+        mockUserRepo.createQueryBuilder.mockReturnValue(mockQueryBuilderUpdate)
 
         mockUserRepo.findOneBy.mockReturnValue(userCreateed)
 

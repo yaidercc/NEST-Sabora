@@ -17,7 +17,8 @@ export class EmployeeController {
   @ApiOperation({ summary: "Create an employee" })
   @ApiResponse({ status: 201, description: "employee was created", type: Employee })
   @ApiResponse({ status: 400, description: "Bad request" })
-  @ApiResponse({ status: 401, description: "Employee role not found/User not found/Unauthorized" })
+  @ApiResponse({ status: 401, description: "User not found/Unauthorized" })
+  @ApiResponse({ status: 404, description: "Employee role not found" })
   @ApiResponse({ status: 409, description: "User already exits as an employee" })
   @Post()
   create(@Body() createEmployeeDto: CreateEmployeeDto) {

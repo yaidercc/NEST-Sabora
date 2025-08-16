@@ -10,6 +10,8 @@ import { User } from 'src/user/entities/user.entity';
 import { validate as isUUID } from "uuid"
 import { PaginationDto } from 'src/common/dtos/pagination.dto';
 import { isActive } from 'src/common/isActive';
+import { GeneralRole } from 'src/user/entities/general_role.entity';
+import { GeneralRoles } from 'src/common/enums/roles';
 
 @Injectable()
 export class EmployeeService {
@@ -19,6 +21,10 @@ export class EmployeeService {
     private readonly employeeRepository: Repository<Employee>,
     @InjectRepository(EmployeeRole)
     private readonly employeeRoleRepository: Repository<EmployeeRole>,
+    @InjectRepository(User)
+    private readonly userRepository: Repository<User>,
+    @InjectRepository(GeneralRole)
+    private readonly generalRoleRepository: Repository<GeneralRole>,
     private readonly dataSource: DataSource
   ) { }
 
@@ -150,6 +156,9 @@ export class EmployeeService {
         throw new BadRequestException("Employee is inactive")
       }
 
+      const clientRole = await this.generalRoleRepository.findOneBy({ name: GeneralRoles.client })
+      await this.userRepository.update(id, { role: clientRole! })
+      
       return await this.employeeRepository.update(id, { is_active: false })
 
     } catch (error) {

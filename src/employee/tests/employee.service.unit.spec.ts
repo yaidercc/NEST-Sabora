@@ -8,7 +8,8 @@ import { employeeId, mockDataSource, mockEmployeeRepo, mockEmployeeRoleRepo, moc
 import { EmployeeMother } from "./employeeMother";
 import { v4 as uuid } from "uuid"
 import { User } from "src/user/entities/user.entity";
-import { mockUserRepo } from "src/user/tests/mocks/user.mocks";
+import { mockRoleRepo, mockUserRepo } from "src/user/tests/mocks/user.mocks";
+import { GeneralRole } from "src/user/entities/general_role.entity";
 
 
 describe("Unit EmployeeServices tests", () => {
@@ -24,6 +25,14 @@ describe("Unit EmployeeServices tests", () => {
                 {
                     provide: getRepositoryToken(Employee),
                     useValue: mockEmployeeRepo
+                },
+                 {
+                    provide: getRepositoryToken(User),
+                    useValue: mockUserRepo
+                },
+                 {
+                    provide: getRepositoryToken(GeneralRole),
+                    useValue: mockRoleRepo
                 },
                 {
                     provide: getRepositoryToken(EmployeeRole),
@@ -73,6 +82,7 @@ describe("Unit EmployeeServices tests", () => {
 
         const mockQueryBuilder = {
             leftJoinAndSelect: jest.fn().mockReturnThis(),
+            select: jest.fn().mockReturnThis(),
             where: jest.fn().mockReturnThis(),
             andWhere: jest.fn().mockReturnThis(),
             getOne: jest.fn().mockResolvedValue(employeeCreated)

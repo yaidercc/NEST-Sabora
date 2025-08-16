@@ -13,12 +13,12 @@ export class UserRoleGuard implements CanActivate {
   ): boolean | Promise<boolean> | Observable<boolean> {
     // Collect the roles sended through metadata
     const validRoles: string[] = this.reflector.get(META_ROLES, context.getHandler())
+    
     if (!validRoles) return true
     if (validRoles.length === 0) return true
 
     const req = context.switchToHttp().getRequest()
     const user = req.user;
-
     if (!user) throw new BadRequestException("User not found")
 
 

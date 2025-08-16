@@ -1,19 +1,13 @@
 import { TestingModule } from "@nestjs/testing";
-import { UserMother } from "./userMother";
-import { GeneralRole } from "../entities/general_role.entity";
 import { INestApplication } from "@nestjs/common";
 import * as request from 'supertest';
-import { JwtService } from "@nestjs/jwt";
-import { compareSync } from "bcrypt";
-import { GeneralRoles } from "src/common/enums/roles";
 import { TestDatabaseManager } from "src/common/tests/test-database";
 import { AdminLogin, TestHelpers, TestRepositories, TestServices } from "src/common/tests/test-helpers";
-import { EmployeeMother } from "src/employee/tests/employeeMother";
+import { TableMother } from "./tableMother";
 
-describe("Integrations test UserService", () => {
+describe("Integrations test TablesService", () => {
     let module: TestingModule;
     let app: INestApplication
-    let clientRole: GeneralRole | null
     let adminLogin: AdminLogin | undefined
     let services: TestServices
     let repositories: TestRepositories
@@ -31,7 +25,6 @@ describe("Integrations test UserService", () => {
     beforeEach(async () => {
         await services.seedService.executeSEED();
         adminLogin = await TestHelpers.loginAsAdmin(app);
-        clientRole = await TestHelpers.getRepositories(module).generalRoleRepository.findOneBy({ name: GeneralRoles.client })
     })
 
     // Closing the nest aplication at the end of the tests
@@ -39,202 +32,78 @@ describe("Integrations test UserService", () => {
         await TestDatabaseManager.cleanUp();
     });
 
-    // Reseting mocks after each test
-    afterEach(async () => {
-        jest.restoreAllMocks();
-    });
-
-    it("POST /user", async () => {
-        const userDTO = UserMother.dto();
-        const fakeToken = 'fake-jwt'
-        jest.spyOn(JwtService.prototype, "sign").mockReturnValue(fakeToken)
+    it("POST /table", async () => {
+        const tableDTO = TableMother.dto();
 
         const response = await request(app.getHttpServer())
-            .post('/user')
-            .send(userDTO)
-
+            .post('/table')
+            .set('Authorization', `Bearer ${adminLogin?.token}`)
+            .send(tableDTO)
 
         expect(response.status).toBe(201)
-        expect(response.body).toMatchObject({
-            user: {
-                full_name: userDTO.full_name,
-                email: userDTO.email,
-                phone: userDTO.phone,
-                role: {
-                    id: clientRole?.id,
-                    name: clientRole?.name
-                }
-            },
-            token: fakeToken
-        })
-    })
-
-    it('POST /user/login', async () => {
-        const userDTO = UserMother.dto();
-        const fakeToken = 'fake-jwt'
-        jest.spyOn(JwtService.prototype, "sign").mockReturnValue(fakeToken)
-        await services.userService.create(userDTO)
-
-        const response = await request(app.getHttpServer())
-            .post("/user/login")
-            .send({ username: userDTO.username, password: userDTO.password })
-
-        expect(response.status).toBe(200)
         expect(response.body).toMatchObject(
-            {
-                user: {
-                    full_name: userDTO.full_name,
-                    email: userDTO.email,
-                    phone: userDTO.phone,
-                    role: {
-                        id: clientRole?.id,
-                        name: clientRole?.name
-                    }
-                },
-                token: fakeToken
-            }
-
+            tableDTO
         )
-    });
-
-
-    it("GET /user", async () => {
-        await UserMother.createManyUsers(services.userService, 2);
-        const response = await request(app.getHttpServer())
-            .get("/user")
-            .set('Authorization', `Bearer ${adminLogin?.token}`);
-        expect(response.status).toBe(200)
-        expect(response.body.length).toBe(3)
     })
 
-    it("GET /user/:term", async () => {
-        const [{ user }] = await UserMother.createManyUsers(services.userService, 1);
-        const response = await request(app.getHttpServer())
-            .get(`/user/${user.id}`)
-            .set('Authorization', `Bearer ${adminLogin?.token}`);
-        
-        expect(response.status).toBe(200)
-        expect(response.body).toMatchObject({
-            full_name: user.full_name,
-            email: user.email,
-            phone: user.phone,
-            role: {
-                id: clientRole?.id,
-                name: clientRole?.name
-            },
-        })
-    })
-
-
-
-    it("GET /user/profile", async () => {
-        await UserMother.createManyUsers(services.userService, 2);
+    it("GET /table/term", async () => {
+        const [{ is_active: _, ...table }] = await TableMother.createManyTables(services.tableService, 1)
 
         const response = await request(app.getHttpServer())
-            .get("/user/profile")
-            .set('Authorization', `Bearer ${adminLogin?.token}`);
+        .get(`/table/${table.id}`)
+        .set('Authorization', `Bearer ${adminLogin?.token}`)
 
-        expect(response.status).toBe(200)
-        expect(response.body).toMatchObject(adminLogin?.user!)
-    })
-
-    it("UPDATE /user", async () => {
-        const [{ user, token }] = await UserMother.createManyUsers(services.userService, 1);
-
-        const dtoUpdate = { full_name: "jhonsito doe" }
-        const response = await request(app.getHttpServer())
-            .patch(`/user/${user.id}`)
-            .set('Authorization', `Bearer ${token}`)
-            .send(dtoUpdate)
         expect(response.status).toBe(200)
         expect(response.body).toMatchObject(
-            {
-                full_name: dtoUpdate.full_name,
-                email: user.email,
-                phone: user.phone,
-                role: {
-                    id: clientRole?.id,
-                    name: clientRole?.name
-                },
-            }
+            table
         )
     })
 
 
-    it('POST /user/request-temp-password', async () => {
-        const [{ user, token }] = await UserMother.createManyUsers(services.userService, 1)
+    it("GET /table", async () => {
+        await TableMother.createManyTables(services.tableService, 2)
+
+        const response = await request(app.getHttpServer())
+        .get(`/table/?limit=${10}&offset=${0}`)
+        .set('Authorization', `Bearer ${adminLogin?.token}`)
+
+        expect(response.status).toBe(200)
+        expect(response.body).toHaveLength(7)
+    })
 
 
-        const userBeforeCange = await repositories.userRepository
-            .createQueryBuilder("user")
-            .addSelect("user.password")
-            .where("user.id = :id", { id: user.id })
-            .getOne();
+    it("PATCH /table", async () => {
+        const [table] = await TableMother.createManyTables(services.tableService, 1)
+        const updateDTO = { capacity: "12" }
+        const response = await request(app.getHttpServer())
+            .patch(`/table/${table.id}`)
+            .set('Authorization', `Bearer ${adminLogin?.token}`)
+            .send(updateDTO)
 
-        await request(app.getHttpServer())
-            .post("/user/request-temp-password")
-            .send({
-                email: user.email,
-                username: user.username,
-            })
+        expect(response.status).toBe(200)
+        expect(response.body.capacity).toBe(updateDTO.capacity)
 
-        const userAfterChange = await repositories.userRepository
-            .createQueryBuilder("user")
-            .addSelect("user.password")
-            .addSelect("user.is_temporal_password")
-            .where("user.id = :id", { id: user.id })
-            .getOne();
-
-        expect(userBeforeCange?.password).not.toBe(userAfterChange?.password)
-        expect(userAfterChange?.is_temporal_password).toBe(true)
-    });
+    })
 
 
-    it('POST /user/change-password', async () => {
-        const [{ user, token }] = await UserMother.createManyUsers(services.userService, 1);
 
+    it("DELETE /table", async () => {
+        const [table] = await TableMother.createManyTables(services.tableService, 1)
 
-        const userBeforeCange = await repositories.userRepository
-            .createQueryBuilder("user")
-            .addSelect("user.password")
-            .where("user.id = :id", { id: user.id })
-            .getOne();
-
-        await request(app.getHttpServer())
-            .post("/user/change-password")
-            .set('Authorization', `Bearer ${token}`)
-            .send({
-                password: "Yaidercc123*",
-                repeatPassword: "Yaidercc123*"
-            })
-
-        const userAfterChange = await repositories.userRepository
-            .createQueryBuilder("user")
-            .addSelect("user.password")
-            .addSelect("user.is_temporal_password")
-            .where("user.id = :id", { id: user.id })
-            .getOne();
-
-        expect(userBeforeCange?.password).not.toBe(userAfterChange?.password)
-        expect(userAfterChange?.is_temporal_password).toBe(false)
-        expect(compareSync("Yaidercc123*", userAfterChange?.password!)).toBeTruthy()
-
-    });
-
-
-    it('DELETE /user', async () => {
-        const [{ user }] = await UserMother.createManyUsers(services.userService, 1)
-        await request(app.getHttpServer())
-            .delete(`/user/${user.id}`)
+        const response = await request(app.getHttpServer())
+            .delete(`/table/${table.id}`)
             .set('Authorization', `Bearer ${adminLogin?.token}`)
 
-        const userAfterChange = await repositories.userRepository
-            .createQueryBuilder("user")
-            .select("user.is_active")
-            .where("user.id = :id", { id: user.id })
-            .getRawOne()
+        const tableAfterBeingEliminated = await repositories.employeeRepository
+            .createQueryBuilder("employee")
+            .addSelect("employee.is_active")
+            .where("employee.id = :id", { id: table.id })
+            .getOne();
 
-        expect(userAfterChange.is_active).toBeFalsy()
-    });
+        expect(response.status).toBe(200)
+        expect(tableAfterBeingEliminated?.is_active).toBeFalsy()
+
+    })
+
 
 })

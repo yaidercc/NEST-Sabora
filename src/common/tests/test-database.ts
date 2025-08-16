@@ -11,6 +11,9 @@ import { Employee } from "src/employee/entities/employee.entity";
 import { EmployeeRole } from "src/employee/entities/employee_role.entity";
 import { SeedModule } from "src/seed/seed.module";
 import { SeedService } from "src/seed/seed.service";
+import { Table } from "src/table/entities/table.entity";
+import { TableModule } from "src/table/table.module";
+import { TableService } from "src/table/table.service";
 import { GeneralRole } from "src/user/entities/general_role.entity";
 import { User } from "src/user/entities/user.entity";
 import { UserModule } from "src/user/user.module";
@@ -36,16 +39,17 @@ export class TestDatabaseManager {
                         database: process.env.DB_NAME,
                         username: process.env.DB_USERNAME,
                         password: process.env.DB_PASSWORD,
-                        entities: [User, GeneralRole, Employee, EmployeeRole],
+                        entities: [User, GeneralRole, Employee, EmployeeRole, Table],
                         synchronize: true,
                         dropSchema: true
                     }),
-                    TypeOrmModule.forFeature([User, GeneralRole, Employee, EmployeeRole]),
+                    TypeOrmModule.forFeature([User, GeneralRole, Employee, EmployeeRole, Table]),
                     UserModule,
                     SeedModule,
-                    EmployeeModule
+                    EmployeeModule,
+                    TableModule
                 ],
-                providers: [EmployeeService, JwtService, SeedService]
+                providers: [EmployeeService, JwtService, SeedService, TableService]
             }).compile()
 
             this.app = this.module.createNestApplication();
@@ -69,15 +73,16 @@ export class TestDatabaseManager {
                 TypeOrmModule.forRoot({
                     type: "sqlite",
                     database: ":memory:",
-                    entities: [Employee, EmployeeRole, User, GeneralRole],
+                    entities: [Employee, EmployeeRole, User, GeneralRole, Table],
                     synchronize: true,
                     dropSchema: true
                 }),
-                TypeOrmModule.forFeature([Employee, EmployeeRole, User, GeneralRole]),
+                TypeOrmModule.forFeature([Employee, EmployeeRole, User, GeneralRole, Table]),
                 EmployeeModule,
-                UserModule
+                UserModule,
+                TableModule
             ],
-            providers: [EmployeeService, JwtService, SeedService]
+            providers: [EmployeeService, JwtService, SeedService, TableService]
         }).compile()
 
         return this.module

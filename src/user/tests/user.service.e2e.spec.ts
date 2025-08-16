@@ -10,7 +10,7 @@ import { TestDatabaseManager } from "src/common/tests/test-database";
 import { AdminLogin, TestHelpers, TestRepositories, TestServices } from "src/common/tests/test-helpers";
 import { EmployeeMother } from "src/employee/tests/employeeMother";
 
-describe("Integrations test UserService", () => {
+describe("E2E test UserService", () => {
     let module: TestingModule;
     let app: INestApplication
     let clientRole: GeneralRole | null
