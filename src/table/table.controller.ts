@@ -18,7 +18,7 @@ export class TableController {
   @ApiResponse({ status: 201, description: "table was created", type: Table })
   @ApiResponse({ status: 400, description: "Bad request" })
   @ApiResponse({ status: 401, description: "User not found/Unauthorized" })
-  @Auth([GeneralRoles.admin])
+  @Auth([GeneralRoles.ADMIN])
   @Post()
   create(@Body() createTableDto: CreateTableDto) {
     return this.tableService.create(createTableDto);
@@ -27,7 +27,7 @@ export class TableController {
 
   @ApiOperation({ summary: "Get all tables" })
   @ApiResponse({ status: 200, description: "Tables", type: [Table] })
-  @Auth([],{},[EmployeeRoles.waitress])
+  @Auth([],{},[EmployeeRoles.WAITRESS])
   @Get()
   findAll(@Query() paginationDTO: PaginationDto) {
     return this.tableService.findAll(paginationDTO);
@@ -38,7 +38,7 @@ export class TableController {
   @ApiResponse({ status: 200, description: "Table", type: Table })
   @ApiResponse({ status: 400, description: "Table is not available" })
   @ApiResponse({ status: 404, description: "Table not found" })
-  @Auth([],{},[EmployeeRoles.waitress])
+  @Auth([],{},[EmployeeRoles.WAITRESS])
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.tableService.findOne(id);
@@ -50,7 +50,7 @@ export class TableController {
   @ApiResponse({ status: 400, description: "Table is not available" })
   @ApiResponse({ status: 401, description: "Unauthorized" })
   @ApiResponse({ status: 404, description: "Table not found" })
-  @Auth([GeneralRoles.admin])
+  @Auth([GeneralRoles.ADMIN])
   @Patch(':id')
   update(@Param('id') id: string, @Body() updateTableDto: UpdateTableDto) {
     return this.tableService.update(id, updateTableDto);
@@ -61,7 +61,7 @@ export class TableController {
   @ApiResponse({ status: 200, description: "Table deleted successfully" })
   @ApiResponse({ status: 401, description: "Unauthorized" })
   @ApiResponse({ status: 404, description: "Table not found" })
-  @Auth([GeneralRoles.admin])
+  @Auth([GeneralRoles.ADMIN])
   @Delete(':id')
   remove(@Param('id') id: string) {
     return this.tableService.remove(id);

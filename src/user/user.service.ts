@@ -38,7 +38,7 @@ export class UserService {
 
   async create(createUserDto: CreateUserDto) {
     const { password, role = "", ...restInfo } = createUserDto
-    const generalRole = await this.findGeneralRole(GeneralRoles.client)
+    const generalRole = await this.findGeneralRole(GeneralRoles.CLIENT)
     try {
       const user = this.userRepository.create({
         ...restInfo,

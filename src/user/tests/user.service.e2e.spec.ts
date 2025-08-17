@@ -31,7 +31,7 @@ describe("E2E test UserService", () => {
     beforeEach(async () => {
         await services.seedService.executeSEED();
         adminLogin = await TestHelpers.loginAsAdmin(app);
-        clientRole = await TestHelpers.getRepositories(module).generalRoleRepository.findOneBy({ name: GeneralRoles.client })
+        clientRole = await TestHelpers.getRepositories(module).generalRoleRepository.findOneBy({ name: GeneralRoles.CLIENT })
     })
 
     // Closing the nest aplication at the end of the tests

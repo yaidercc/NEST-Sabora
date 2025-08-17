@@ -29,7 +29,7 @@ describe("Integrations test EmployeeService", () => {
     beforeEach(async () => {
         await services.seedService.executeSEED();
         adminLogin = await TestHelpers.loginAsAdmin(app);
-        clientRole = await repositories.generalRoleRepository.findOneBy({ name: GeneralRoles.client })
+        clientRole = await repositories.generalRoleRepository.findOneBy({ name: GeneralRoles.CLIENT })
         employeeRoles = await EmployeeMother.seedRoles(repositories.employeeRoleRepository)
     })
 
@@ -43,7 +43,7 @@ describe("Integrations test EmployeeService", () => {
 
     it("POST /employee", async () => {
         const [{ user }] = await UserMother.createManyUsers(services.userService, 1)
-        const employeeDTO = EmployeeMother.dto({ user_id: user.id, employee_role_id: employeeRoles[EmployeeRoles.cashier] })
+        const employeeDTO = EmployeeMother.dto({ user_id: user.id, employee_role_id: employeeRoles[EmployeeRoles.CASHIER] })
 
         const response = await request(app.getHttpServer())
             .post('/employee')

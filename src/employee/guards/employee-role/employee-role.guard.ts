@@ -20,10 +20,10 @@ export class EmployeeRoleGuard implements CanActivate {
     if ((userRoles?.length === 0 && employeeRoles?.length === 0) || (!userRoles && !employeeRoles)) return true
     
     if (userRoles && userRoles?.length !== 0) {
-      if (userRoles?.includes(GeneralRoles.admin) && user.role?.name === GeneralRoles.admin) return true;
-      if (userRoles?.includes(GeneralRoles.client) && user.role?.name === GeneralRoles.client) return true
+      if (userRoles?.includes(GeneralRoles.ADMIN) && user.role?.name === GeneralRoles.ADMIN) return true;
+      if (userRoles?.includes(GeneralRoles.CLIENT) && user.role?.name === GeneralRoles.CLIENT) return true
       
-    } else if(user?.role?.name !== GeneralRoles.employee){
+    } else if(user?.role?.name !== GeneralRoles.EMPLOYEE){
       return true
     }
 

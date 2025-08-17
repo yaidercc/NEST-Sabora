@@ -8,7 +8,7 @@ import { EmployeeRoles, GeneralRoles } from 'src/common/enums/roles';
 import { employeeRoleProtected } from '../../employee/decorators/employee-role-protected.decorator';
 import { EmployeeRoleGuard } from 'src/employee/guards/employee-role/employee-role.guard';
 
-export function Auth(roles?: GeneralRoles[], options?: OwnerAminOptions, employeeRoles?: EmployeeRoles[]) {
+export function Auth(roles?: GeneralRoles[], options?: OwnerAminOptions, employeeRoles?: EmployeeRoles[], ) {
   const decorators = [
     UseGuards(AuthGuard()),
   ];

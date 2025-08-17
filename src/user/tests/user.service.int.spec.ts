@@ -42,7 +42,7 @@ describe("Integrations test UserService", () => {
 
         const response = await services.userService.create(userDTO)
 
-        const clientRole = await repositories.generalRoleRepository.findOneBy({ name: GeneralRoles.client })
+        const clientRole = await repositories.generalRoleRepository.findOneBy({ name: GeneralRoles.CLIENT })
         expect(response).toBeDefined()
         expect(response).toMatchObject({
             user: {

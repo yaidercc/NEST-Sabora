@@ -10,7 +10,7 @@ import { Employee } from './entities/employee.entity';
 
 @ApiBearerAuth('access-token')
 @Controller('employee')
-@Auth([GeneralRoles.admin])
+@Auth([GeneralRoles.ADMIN])
 export class EmployeeController {
   constructor(private readonly employeeService: EmployeeService) { }
 

@@ -10,6 +10,7 @@ import { User } from 'src/user/entities/user.entity';
 import { Table } from 'src/table/entities/table.entity';
 import * as dayjs from "dayjs"
 import { Status } from './enum/status';
+import { EmployeeRoles, GeneralRoles } from 'src/common/enums/roles';
 
 interface validateAvailabilityinterface { date: string, time: string, user_id: string, table_id: string, party_size: number }
 
@@ -80,11 +81,6 @@ export class ReservationService {
     }
   }
 
-
-  findAll() {
-    return `This action returns all reservation`;
-  }
-
   async findOne(id: string) {
     try {
       const reservation = await this.reservationRepository.findOneBy({ id })
@@ -97,27 +93,51 @@ export class ReservationService {
     }
   }
 
-  async changeReservationStatus(id: string, updateReservationDto: UpdateReservationDto) {
+  async changeReservationStatus(id: string, updateReservationDto: UpdateReservationDto, user: User) {
+    const { status } = updateReservationDto;
+
     try {
-      const reservation = await this.reservationRepository.findOneBy({ id })
+      const reservation = await this.reservationRepository.createQueryBuilder("reservation")
+        .leftJoinAndSelect("reservation.user", "user")
+        .where("reservation.id = :id", { id })
+        .getOne();
 
-      if (!reservation) throw new NotFoundException("Reservation not found")
+      if (!reservation) throw new NotFoundException("Reservation not found");
 
-      reservation.status = updateReservationDto.status;
 
-      await this.reservationRepository.save(reservation)
+      this.validatePermissions(status, user, reservation);
+
+      reservation.status = status;
+      await this.reservationRepository.save(reservation);
 
       return reservation;
     } catch (error) {
-      handleException(error, this.logger)
+      handleException(error, this.logger);
+    }
+  }
+
+  private validatePermissions(status: string, user: User, reservation: Reservation) {
+    if (status === Status.CANCELLED) {
+      const isOwner = user.id === reservation.user.id;
+      const isAdmin = user.role.name === GeneralRoles.ADMIN;
+      const isManager = user.employee?.employee_role.name === EmployeeRoles.MANAGER;
+
+      if (!isOwner && !isAdmin && !isManager) {
+        throw new BadRequestException("You have no permission to perform this action");
+      }
     }
 
-  }
+    if ([Status.SEATED.valueOf(), Status.FINISHED.valueOf(), Status.NO_SHOW.valueOf()].includes(status)) {
+      if (!user.employee) {
+        throw new BadRequestException("You have no permission to perform this action");
+      }
 
-  remove(id: number) {
-    return `This action removes a #${id} reservation`;
+      const allowedRoles = [EmployeeRoles.MANAGER.valueOf(), EmployeeRoles.WAITRESS.valueOf()];
+      if (!allowedRoles.includes(user.employee.employee_role.name)) {
+        throw new BadRequestException("You have no permission to perform this action");
+      }
+    }
   }
-
 
   private async validateAvailability(reservationDataToValidate: validateAvailabilityinterface) {
     const { date, time, user_id, table_id, party_size } = reservationDataToValidate

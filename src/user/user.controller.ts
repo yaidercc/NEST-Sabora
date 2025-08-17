@@ -39,7 +39,7 @@ export class UserController {
   @ApiResponse({ status: 200, description: "Users", type: [User] })
   @ApiResponse({ status: 401, description: "Unauthorized" })
   @ApiBearerAuth('access-token')
-  @Auth([GeneralRoles.admin], { allowAdmin: true })
+  @Auth([GeneralRoles.ADMIN], { allowAdmin: true })
   @Get()
   findAll() {
     return this.userService.findAll();
@@ -82,7 +82,7 @@ export class UserController {
   @ApiResponse({ status: 200, description: "User", type: User })
   @ApiResponse({ status: 401, description: "Unauthorized" })
   @ApiResponse({ status: 404, description: "User not found" })
-  @Auth([GeneralRoles.admin], { allowAdmin: true })
+  @Auth([GeneralRoles.ADMIN], { allowAdmin: true })
   @Get(':term')
   findOne(@Param('term') term: string) {
     return this.userService.findOne(term);
@@ -105,7 +105,7 @@ export class UserController {
   @ApiResponse({ status: 200, description: "User deleted successfully" })
   @ApiResponse({ status: 401, description: "Unauthorized" })
   @ApiResponse({ status: 404, description: "User not found" })
-  @Auth([GeneralRoles.admin])
+  @Auth([GeneralRoles.ADMIN])
   @Delete(':id')
   remove(@Param('id', ParseUUIDPipe) id: string) {
     return this.userService.remove(id);

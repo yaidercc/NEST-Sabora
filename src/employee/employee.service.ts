@@ -156,7 +156,7 @@ export class EmployeeService {
         throw new BadRequestException("Employee is inactive")
       }
 
-      const clientRole = await this.generalRoleRepository.findOneBy({ name: GeneralRoles.client })
+      const clientRole = await this.generalRoleRepository.findOneBy({ name: GeneralRoles.CLIENT })
       await this.userRepository.update(id, { role: clientRole! })
       
       return await this.employeeRepository.update(id, { is_active: false })

@@ -32,7 +32,7 @@ describe("Integrations test EmployeeService", () => {
         const userDTO = UserMother.dto();
         const responseUser = await services.userService.create(userDTO)
 
-        const employeeDTO = EmployeeMother.dto({ user_id: responseUser?.user.id!, employee_role_id: employeeRoles[EmployeeRoles.cashier] })
+        const employeeDTO = EmployeeMother.dto({ user_id: responseUser?.user.id!, employee_role_id: employeeRoles[EmployeeRoles.CASHIER] })
 
         const responseEmployee = await services.employeesService.create(employeeDTO)
 

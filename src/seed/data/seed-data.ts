@@ -45,29 +45,29 @@ export const initialData: InitialData = {
     generalRoles: [
         {
             id: uuid(),
-            name: GeneralRoles.admin
+            name: GeneralRoles.ADMIN
         },
         {
             id: uuid(),
-            name: GeneralRoles.employee
+            name: GeneralRoles.EMPLOYEE
         },
         {
             id: uuid(),
-            name: GeneralRoles.client
+            name: GeneralRoles.CLIENT
         },
     ],
     employeeRoles: [
         {
             id: uuid(),
-            name: EmployeeRoles.cashier
+            name: EmployeeRoles.CASHIER
         },
         {
             id: uuid(),
-            name: EmployeeRoles.waitress
+            name: EmployeeRoles.WAITRESS
         },
         {
             id: uuid(),
-            name: EmployeeRoles.cooker
+            name: EmployeeRoles.COOKER
         },
     ],
     user: {
