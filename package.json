@@ -38,6 +38,7 @@
     "bcrypt": "^6.0.0",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.2",
+    "dayjs": "^1.11.13",
     "joi": "^17.13.3",
     "nodemailer": "^7.0.5",
     "passport": "^0.7.0",
@@ -89,14 +90,14 @@
       "ts"
     ],
     "rootDir": "src",
-   "testMatch": [
-    "**/*.unit.spec.ts",      
-    "**/*.int.spec.ts",       
-    "**/*.spec.ts"           
-  ],
-  "testPathIgnorePatterns": [
-    ".*\\.e2e\\.spec\\.ts$"  
-  ],
+    "testMatch": [
+      "**/*.unit.spec.ts",
+      "**/*.int.spec.ts",
+      "**/*.spec.ts"
+    ],
+    "testPathIgnorePatterns": [
+      ".*\\.e2e\\.spec\\.ts$"
+    ],
     "transform": {
       "^.+\\.(t|j)s$": "ts-jest"
     },

@@ -5,6 +5,7 @@ export const mockTable = {
     update: jest.fn(),
     save: jest.fn(),
     find: jest.fn(),
+    findOne: jest.fn(),
     findOneBy: jest.fn(),
     preload:jest.fn(),
     createQueryBuilder: jest.fn(),

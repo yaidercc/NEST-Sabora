@@ -4,12 +4,13 @@ import { Employee } from "../entities/employee.entity";
 import { EmployeeRole } from "../entities/employee_role.entity";
 import { Test, TestingModule } from "@nestjs/testing";
 import { getRepositoryToken } from "@nestjs/typeorm";
-import { employeeId, mockDataSource, mockEmployeeRepo, mockEmployeeRoleRepo, mockManager } from "./mocks/employee.mock";
+import { employeeId,  mockEmployeeRepo, mockEmployeeRoleRepo } from "./mocks/employee.mock";
 import { EmployeeMother } from "./employeeMother";
 import { v4 as uuid } from "uuid"
 import { User } from "src/user/entities/user.entity";
 import { mockRoleRepo, mockUserRepo } from "src/user/tests/mocks/user.mocks";
 import { GeneralRole } from "src/user/entities/general_role.entity";
+import { mockDataSource, mockManager } from "src/common/tests/mocks/common.mocks";
 
 
 describe("Unit EmployeeServices tests", () => {
@@ -73,7 +74,6 @@ describe("Unit EmployeeServices tests", () => {
         expect(response).toMatchObject(employeeCreated)
 
     });
-
 
 
     it('should return an employee', async () => {

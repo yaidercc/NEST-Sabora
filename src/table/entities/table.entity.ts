@@ -1,5 +1,6 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { BeforeInsert, BeforeUpdate, Column, Entity, Index, PrimaryGeneratedColumn } from "typeorm";
+import { Reservation } from "src/reservation/entities/reservation.entity";
+import { BeforeInsert, BeforeUpdate, Column, Entity, Index, OneToMany, PrimaryGeneratedColumn } from "typeorm";
 
 @Entity("table")
 export class Table {
@@ -28,6 +29,12 @@ export class Table {
 
     @Column("boolean", { default: true, select: false })
     is_active: boolean
+
+    @OneToMany(
+        () => Reservation,
+        reservation => reservation.table
+    )
+    reservation: Reservation;
 
     @BeforeInsert()
     @BeforeUpdate()

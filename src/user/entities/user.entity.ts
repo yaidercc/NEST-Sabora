@@ -1,7 +1,8 @@
-import { BeforeInsert, BeforeUpdate, Column, CreateDateColumn, DeleteDateColumn, Entity, Index, ManyToOne, OneToOne, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
+import { BeforeInsert, BeforeUpdate, Column, CreateDateColumn, DeleteDateColumn, Entity, Index, ManyToOne, OneToMany, OneToOne, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
 import { GeneralRole } from "./general_role.entity";
 import { ApiProperty } from "@nestjs/swagger";
 import { Employee } from "src/employee/entities/employee.entity";
+import { Reservation } from "src/reservation/entities/reservation.entity";
 
 @Entity("user")
 export class User {
@@ -81,6 +82,12 @@ export class User {
         { nullable: true, eager: true }
     )
     employee?: Employee;
+
+    @OneToMany(
+        ()=> Reservation,
+        reservation => reservation.user
+    )
+    reservation: Reservation;
 
 
     @BeforeInsert()
