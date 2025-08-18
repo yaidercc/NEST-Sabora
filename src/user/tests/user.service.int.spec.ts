@@ -23,12 +23,10 @@ describe("Integrations test UserService", () => {
 
         services = TestHelpers.getServices(module)
         repositories = TestHelpers.getRepositories(module)
-
-        await UserMother.seedRoles(repositories.generalRoleRepository)
     })
 
     beforeEach(async () => {
-        await repositories.userRepository.clear()
+         await TestHelpers.setupTestData(services.seedService)
     })
 
     afterAll(async () => {
@@ -82,7 +80,7 @@ describe("Integrations test UserService", () => {
         await UserMother.createManyUsers(services.userService, 2);
         const response = await services.userService.findAll();
 
-        expect(response.length).toBe(2)
+        expect(response.length).toBe(4)
     });
 
     it('should update an user', async () => {

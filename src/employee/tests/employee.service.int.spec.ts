@@ -16,8 +16,7 @@ describe("Integrations test EmployeeService", () => {
         module = await TestDatabaseManager.initializeInt();
         services = TestHelpers.getServices(module)
         repositories = TestHelpers.getRepositories(module)
-        employeeRoles = await EmployeeMother.seedRoles(repositories.employeeRoleRepository)
-        await UserMother.seedRoles(repositories.generalRoleRepository)
+        employeeRoles = await EmployeeMother.employeeRolesIds(repositories.employeeRoleRepository)
     })
 
     beforeEach(async () => {

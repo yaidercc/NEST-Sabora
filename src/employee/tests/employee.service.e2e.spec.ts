@@ -27,10 +27,10 @@ describe("Integrations test EmployeeService", () => {
     })
 
     beforeEach(async () => {
-        await services.seedService.executeSEED();
+        
         adminLogin = await TestHelpers.loginAsAdmin(app);
         clientRole = await repositories.generalRoleRepository.findOneBy({ name: GeneralRoles.CLIENT })
-        employeeRoles = await EmployeeMother.seedRoles(repositories.employeeRoleRepository)
+        employeeRoles = await EmployeeMother.employeeRolesIds(repositories.employeeRoleRepository)
     })
 
     afterAll(async () => {
@@ -38,6 +38,7 @@ describe("Integrations test EmployeeService", () => {
     });
 
     afterEach(async () => {
+        await services.seedService.executeSEED();
         jest.restoreAllMocks();
     });
 
@@ -93,7 +94,7 @@ describe("Integrations test EmployeeService", () => {
 
         expect(response.status).toBe(200)
         expect(response.body).toBeDefined()
-        expect(response.body.length).toBe(2)
+        expect(response.body.length).toBe(3)
 
     })
 

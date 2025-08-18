@@ -55,7 +55,11 @@ describe("Integrations test TablesService", () => {
 
         expect(response.status).toBe(200)
         expect(response.body).toMatchObject(
-            table
+            {
+                id: table.id,
+                name: table.name,
+                capacity: table.capacity
+            }
         )
     })
 

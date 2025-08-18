@@ -33,3 +33,9 @@ export const mockRoleRepo = {
 export const mockConfigService = {
     get: jest.fn().mockReturnValue("SG.API_KEY")
 }
+export const mockUserService = {
+    findById: jest.fn(),
+    findOne: jest.fn(),
+    create: jest.fn(),
+    update: jest.fn(),
+};

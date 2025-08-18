@@ -9,6 +9,7 @@ import { EmployeeModule } from "src/employee/employee.module";
 import { EmployeeService } from "src/employee/employee.service";
 import { Employee } from "src/employee/entities/employee.entity";
 import { EmployeeRole } from "src/employee/entities/employee_role.entity";
+import { EmployeeMother } from "src/employee/tests/employeeMother";
 import { SeedModule } from "src/seed/seed.module";
 import { SeedService } from "src/seed/seed.service";
 import { Table } from "src/table/entities/table.entity";
@@ -17,6 +18,12 @@ import { TableService } from "src/table/table.service";
 import { GeneralRole } from "src/user/entities/general_role.entity";
 import { User } from "src/user/entities/user.entity";
 import { UserModule } from "src/user/user.module";
+import { TestHelpers } from "./test-helpers";
+import { UserMother } from "src/user/tests/userMother";
+import { Schedule } from "src/reservation/entities/schedule.entity";
+import { Reservation } from "src/reservation/entities/reservation.entity";
+import { ReservationModule } from "src/reservation/reservation.module";
+import { ReservationService } from "src/reservation/reservation.service";
 
 export class TestDatabaseManager {
     private static module: TestingModule;
@@ -39,28 +46,34 @@ export class TestDatabaseManager {
                         database: process.env.DB_NAME,
                         username: process.env.DB_USERNAME,
                         password: process.env.DB_PASSWORD,
-                        entities: [User, GeneralRole, Employee, EmployeeRole, Table],
+                        entities: [User, GeneralRole, Employee, EmployeeRole, Table, Schedule, Reservation],
                         synchronize: true,
                         dropSchema: true
                     }),
-                    TypeOrmModule.forFeature([User, GeneralRole, Employee, EmployeeRole, Table]),
+                    TypeOrmModule.forFeature([User, GeneralRole, Employee, EmployeeRole, Table, Schedule, Reservation]),
                     UserModule,
                     SeedModule,
                     EmployeeModule,
-                    TableModule
+                    TableModule,
+                    ReservationModule
                 ],
-                providers: [EmployeeService, JwtService, SeedService, TableService]
+                providers: [EmployeeService, JwtService, SeedService, TableService, ReservationService]
             }).compile()
 
             this.app = this.module.createNestApplication();
             await this.app.init()
+
+            const seedService = this.module.get<SeedService>(SeedService);
+            await seedService.executeSEED();
+
         }
 
         return {
             module: this.module,
-            app: this.app
+            app: this.app,
         }
     }
+
 
     static async initializeInt(): Promise<TestingModule> {
         this.module = await Test.createTestingModule({
@@ -73,17 +86,21 @@ export class TestDatabaseManager {
                 TypeOrmModule.forRoot({
                     type: "sqlite",
                     database: ":memory:",
-                    entities: [Employee, EmployeeRole, User, GeneralRole, Table],
+                    entities: [Employee, EmployeeRole, User, GeneralRole, Table, Schedule, Reservation],
                     synchronize: true,
                     dropSchema: true
                 }),
-                TypeOrmModule.forFeature([Employee, EmployeeRole, User, GeneralRole, Table]),
+                TypeOrmModule.forFeature([Employee, EmployeeRole, User, GeneralRole, Table, Schedule, Reservation]),
                 EmployeeModule,
                 UserModule,
-                TableModule
+                TableModule,
+                ReservationModule
             ],
-            providers: [EmployeeService, JwtService, SeedService, TableService]
+            providers: [EmployeeService, JwtService, SeedService, TableService, ReservationService]
         }).compile()
+
+        const seedService = this.module.get<SeedService>(SeedService);
+        await seedService.executeSEED();
 
         return this.module
     }

@@ -9,6 +9,8 @@ import { Employee } from 'src/employee/entities/employee.entity';
 import { EmployeeService } from 'src/employee/employee.service';
 import { EmployeeRole } from 'src/employee/entities/employee_role.entity';
 import { Table } from 'src/table/entities/table.entity';
+import { Schedule } from 'src/reservation/entities/schedule.entity';
+import { Reservation } from 'src/reservation/entities/reservation.entity';
 
 @Injectable()
 export class SeedService {
@@ -24,42 +26,61 @@ export class SeedService {
     @InjectRepository(EmployeeRole)
     private readonly employeeRoleRepository: Repository<EmployeeRole>,
     @InjectRepository(Table)
-    private readonly tableRepository: Repository<Table>
+    private readonly tableRepository: Repository<Table>,
+    @InjectRepository(Schedule)
+    private readonly scheduleRepository: Repository<Schedule>,
+    @InjectRepository(Reservation)
+    private readonly reservationRepository: Repository<Reservation>
   ) { }
 
   async executeSEED() {
     await this.deleteTables()
-    const adminRole = await this.insertGeneralRoles();
-    await this.insertEmployeeRoles();
-    await this.insertUser(adminRole)
+    const roles = await this.insertGeneralRoles();
+    const employeeRole = await this.insertEmployeeRoles();
+    const user = await this.insertUser(roles)
+    await this.insertEmployee(user!, employeeRole);
     await this.insertTables()
+    await this.insertSchedules()
     return "SEED EXECUTED"
   }
 
   private async deleteTables() {
+    await this.reservationRepository.createQueryBuilder().delete().where({}).execute()
     await this.employeeService.removeAllEmployees()
     await this.userService.removeAllUsers()
-    await Promise.all([
-      this.generalRoleRepository.createQueryBuilder().delete().where({}).execute(),
-      this.employeeRoleRepository.createQueryBuilder().delete().where({}).execute(),
-      this.tableRepository.createQueryBuilder().delete().where({}).execute()
-    ])
+    await this.generalRoleRepository.createQueryBuilder().delete().where({}).execute()
+    await this.employeeRoleRepository.createQueryBuilder().delete().where({}).execute()
+    await this.scheduleRepository.createQueryBuilder().delete().where({}).execute()
+    await this.tableRepository.createQueryBuilder().delete().where({}).execute()
+
   }
 
-  private async insertUser(adminRole: GeneralRole) {
-    const user = this.userRepository.create({
-      ...initialData.user,
-      role: adminRole
+  private async insertUser(role: GeneralRole[]) {
+    const users = initialData.user.map((item, i) => {
+      return this.userRepository.create({
+        ...item,
+        role: role[i]
+      });
+    })
+
+    await this.userRepository.save(users)
+    return users.pop()
+  }
+  private async insertEmployee(user: User, employeeRole: EmployeeRole) {
+    const employee = this.employeeRepository.create({
+      ...initialData.employee,
+      user,
+      employee_role: employeeRole
     });
-    await this.userRepository.save(user)
-    return user
+    await this.employeeRepository.save(employee)
+    return employee
   }
 
 
   private async insertGeneralRoles() {
     const generalRoles = initialData.generalRoles.map((item) => this.generalRoleRepository.create(item))
     await this.generalRoleRepository.save(generalRoles)
-    return generalRoles[0]
+    return generalRoles
   }
 
   private async insertEmployeeRoles() {
@@ -68,10 +89,16 @@ export class SeedService {
     return employeeRoles[0]
   }
 
-    private async insertTables() {
+  private async insertTables() {
     const tables = initialData.tables.map((item) => this.tableRepository.create(item))
     await this.tableRepository.save(tables)
     return tables
+  }
+
+  private async insertSchedules() {
+    const schedule = initialData.schedule.map((item) => this.scheduleRepository.create(item))
+    await this.scheduleRepository.save(schedule)
+    return schedule
   }
 }
 

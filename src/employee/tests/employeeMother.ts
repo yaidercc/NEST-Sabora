@@ -1,13 +1,10 @@
 import { Repository } from "typeorm";
-import { initialData } from "src/seed/data/seed-data";
-import { Chance } from "chance"
 import { CreateEmployeeDto } from "../dto/create-employee.dto";
 import { EmployeeRole } from "../entities/employee_role.entity";
 import { EmployeeService } from "../employee.service";
 import { Employee } from "../entities/employee.entity";
 import { UserService } from "src/user/user.service";
 import { UserMother } from "src/user/tests/userMother";
-import { EmployeeRoles } from "src/common/enums/roles";
 
 export class EmployeeMother {
     static dto(employeeInfo?: Partial<CreateEmployeeDto>): CreateEmployeeDto {
@@ -18,15 +15,13 @@ export class EmployeeMother {
         }
     }
 
-    static async seedRoles(employeeRepository: Repository<EmployeeRole>) {
-        const employeeRoles = initialData.employeeRoles.map((item) => employeeRepository.create(item))
-        await employeeRepository.save(employeeRoles)
+    static async employeeRolesIds(employeeRepository: Repository<EmployeeRole>) {
+        const employeeRoles = await employeeRepository.find();
         const rolesIds = {}
         employeeRoles.forEach((item) => rolesIds[item.name] = item.id)
 
         return rolesIds
     }
-
 
 
     static async createManyEmployees(employeeService: EmployeeService, userService: UserService, quantity: number, employeeRoles: { [key: string]: string }): Promise<Employee[]> {

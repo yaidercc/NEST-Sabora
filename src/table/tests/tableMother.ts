@@ -10,8 +10,7 @@ export class TableMother {
         }
     }
 
-
-    static async createManyTables(tableService: TableService, quantity: number): Promise<Table[]> {
+    static async createManyTables(tableService: TableService, quantity: number, capacity?: number): Promise<Table[]> {
         let tables: Table[] = [];
         let roomsNames = new Set()
 
@@ -22,8 +21,8 @@ export class TableMother {
 
         for (let j = 0; j < quantity; j++) {
             const employee = await tableService.create(TableMother.dto({
-                name: `Table ${Array.from(roomsNames)[j]}`,
-                capacity: `${Math.floor(Math.random() * 12) + 1}`
+                name: `${Array.from(roomsNames)[j]}`,
+                capacity:  `${capacity || Math.floor(Math.random() * 12) + 1}`
             }))
             if (employee) {
                 tables.push(employee)

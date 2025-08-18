@@ -9,10 +9,10 @@ export class Schedule {
     day_of_week: number;
 
     @Column({ type: 'time', nullable: true })
-    opening_time: string;
+    opening_time?: string;
 
     @Column({ type: 'time', nullable: true })
-    closing_time: string;
+    closing_time?: string;
 
     @Column({type: "boolean", default: false})
     is_closed: boolean;

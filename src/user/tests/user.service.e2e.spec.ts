@@ -104,7 +104,7 @@ describe("E2E test UserService", () => {
             .get("/user")
             .set('Authorization', `Bearer ${adminLogin?.token}`);
         expect(response.status).toBe(200)
-        expect(response.body.length).toBe(3)
+        expect(response.body.length).toBe(4)
     })
 
     it("GET /user/:term", async () => {

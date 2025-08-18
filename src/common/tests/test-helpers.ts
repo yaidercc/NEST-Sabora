@@ -13,12 +13,15 @@ import { GeneralRole } from "src/user/entities/general_role.entity";
 import { initialData } from "src/seed/data/seed-data";
 import { TableService } from "src/table/table.service";
 import { Table } from "src/table/entities/table.entity";
+import { Reservation } from "src/reservation/entities/reservation.entity";
+import { ReservationService } from "src/reservation/reservation.service";
 
 export interface TestServices {
     tableService: TableService;
     userService: UserService;
     seedService: SeedService;
     employeesService: EmployeeService;
+    reservationService: ReservationService;
 }
 
 export interface TestRepositories {
@@ -27,6 +30,7 @@ export interface TestRepositories {
     employeeRepository: Repository<Employee>
     employeeRoleRepository: Repository<EmployeeRole>
     generalRoleRepository: Repository<GeneralRole>
+    reservationRepository: Repository<Reservation>
 }
 
 export interface AdminLogin {
@@ -46,7 +50,8 @@ export class TestHelpers {
             userRepository: module.get<Repository<User>>(getRepositoryToken(User)),
             employeeRepository: module.get<Repository<Employee>>(getRepositoryToken(Employee)),
             employeeRoleRepository: module.get<Repository<EmployeeRole>>(getRepositoryToken(EmployeeRole)),
-            generalRoleRepository: module.get<Repository<GeneralRole>>(getRepositoryToken(GeneralRole))
+            generalRoleRepository: module.get<Repository<GeneralRole>>(getRepositoryToken(GeneralRole)),
+            reservationRepository: module.get<Repository<Reservation>>(getRepositoryToken(Reservation)),
         }
     }
     static getServices(module: TestingModule): TestServices {
@@ -54,14 +59,16 @@ export class TestHelpers {
             tableService: module.get<TableService>(TableService),
             userService: module.get<UserService>(UserService),
             seedService: module.get<SeedService>(SeedService),
-            employeesService: module.get<EmployeeService>(EmployeeService)
+            employeesService: module.get<EmployeeService>(EmployeeService),
+            reservationService: module.get<ReservationService>(ReservationService),
+
         }
     }
 
     static async loginAsAdmin(app: INestApplication): Promise<AdminLogin | undefined> {
         const response = await request(app.getHttpServer())
             .post('/user/login')
-            .send({ username: initialData.user.username, password: "Jhondoe123*" });
+            .send({ username: initialData.user[0].username, password: "Jhondoe123*" });
 
         return response.body;
     }

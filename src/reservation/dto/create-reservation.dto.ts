@@ -21,16 +21,16 @@ export class CreateReservationDto {
     table_id: string;
 
     @ApiProperty({
-        description: "reservation date",
+        description: "Reservation date",
         example: "2020-10-10"
     })
     @ValidateIf((value) => value !== null && value !== undefined)
     @IsISO8601()
     date: string;
 
-    @ApiProperty({
-        description: "reservation time start",
-        example: "2020-10-10"
+      @ApiProperty({
+        description: "Reservation time start",
+        example: "12:00:00"
     })
     @ValidateIf((value) => value !== null && value !== undefined)
     @Matches(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9]$/, {
@@ -39,8 +39,8 @@ export class CreateReservationDto {
     time_start: string;
 
     @ApiProperty({
-        description: "reservation party size",
-        example: "2020-10-10"
+        description: "Reservation party size",
+        example: 5
     })
     @ValidateIf((value) => value !== null && value !== undefined)
     @IsNumber()

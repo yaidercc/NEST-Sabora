@@ -24,6 +24,8 @@ interface User {
 
 interface Employee {
     id: string,
+    user?: User,
+    employee_role?: EmployeeRole,
     hiring_date: string,
 }
 
@@ -33,12 +35,21 @@ interface Table {
     capacity: string
 }
 
+interface Schedule {
+    id: string;
+    day_of_week: number;
+    opening_time?: string;
+    closing_time?: string;
+    is_closed: boolean;
+}
+
 interface InitialData {
     generalRoles: GeneralRole[],
     employeeRoles: EmployeeRole[]
-    user: User,
+    user: User[],
     employee: Employee,
-    tables: Table[]
+    tables: Table[],
+    schedule: Schedule[]
 }
 
 export const initialData: InitialData = {
@@ -59,6 +70,10 @@ export const initialData: InitialData = {
     employeeRoles: [
         {
             id: uuid(),
+            name: EmployeeRoles.MANAGER
+        },
+        {
+            id: uuid(),
             name: EmployeeRoles.CASHIER
         },
         {
@@ -69,15 +84,26 @@ export const initialData: InitialData = {
             id: uuid(),
             name: EmployeeRoles.COOKER
         },
+
     ],
-    user: {
-        id: uuid(),
-        full_name: "jhon doe",
-        username: "jhonDoe",
-        email: "jhon@gmail.com",
-        password: hashSync("Jhondoe123*", genSaltSync()),
-        phone: "573165482747"
-    },
+    user: [
+        {
+            id: uuid(),
+            full_name: "jhon doe",
+            username: "jhonDoe",
+            email: "jhon@gmail.com",
+            password: hashSync("Jhondoe123*", genSaltSync()),
+            phone: "573165482747"
+        },
+        {
+            id: uuid(),
+            full_name: "jane doe",
+            username: "janeDoe",
+            email: "jane@gmail.com",
+            password: hashSync("Janedoe123*", genSaltSync()),
+            phone: "573238374625"
+        }
+    ],
     employee: {
         id: uuid(),
         hiring_date: "2020-10-10",
@@ -109,6 +135,55 @@ export const initialData: InitialData = {
             capacity: "7"
         },
 
+    ],
+    schedule: [
+        {
+            id: uuid(),
+            day_of_week: 0,
+            is_closed: true,
+        },
+        {
+            id: uuid(),
+            day_of_week: 1,
+            opening_time: "08:00:00",
+            closing_time: "22:00:00",
+            is_closed: false,
+        },
+        {
+            id: uuid(),
+            day_of_week: 2,
+            opening_time: "08:00:00",
+            closing_time: "22:00:00",
+            is_closed: false,
+        },
+        {
+            id: uuid(),
+            day_of_week: 3,
+            opening_time: "08:00:00",
+            closing_time: "22:00:00",
+            is_closed: false,
+        },
+        {
+            id: uuid(),
+            day_of_week: 4,
+            opening_time: "08:00:00",
+            closing_time: "22:00:00",
+            is_closed: false,
+        },
+        {
+            id: uuid(),
+            day_of_week: 5,
+            opening_time: "08:00:00",
+            closing_time: "22:00:00",
+            is_closed: false,
+        },
+        {
+            id: uuid(),
+            day_of_week: 6,
+            opening_time: "08:00:00",
+            closing_time: "19:00:00",
+            is_closed: false,
+        }
     ]
 
 }

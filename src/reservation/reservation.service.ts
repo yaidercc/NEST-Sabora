@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable, Logger, NotFoundException } from '@nestjs/common';
+import { BadRequestException, ForbiddenException, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { CreateReservationDto } from './dto/create-reservation.dto';
 import { UpdateReservationDto } from './dto/update-reservation.dto';
 import { DataSource, In, Repository } from 'typeorm';
@@ -63,8 +63,10 @@ export class ReservationService {
 
       const reservation = queryRunner.manager.create(Reservation, {
         ...restReservationInfo,
+        time_end: dayjs(`${restReservationInfo.date} ${restReservationInfo.time_start}`).add(2, "hours").format("HH:mm:ss"),
         user,
-        table
+        table,
+        status: Status.CONFIRMED
       })
 
       await queryRunner.manager.save(Reservation, reservation);
@@ -81,11 +83,19 @@ export class ReservationService {
     }
   }
 
-  async findOne(id: string) {
+  async findOne(id: string, user: User) {
     try {
       const reservation = await this.reservationRepository.findOneBy({ id })
 
       if (!reservation) throw new NotFoundException("Reservation not found")
+
+      const isOwner = user.id === reservation.user.id;
+      const isAdmin = user.role.name === GeneralRoles.ADMIN;
+      const isManager = user.employee?.employee_role.name === EmployeeRoles.MANAGER;
+
+      if (!isOwner && !isAdmin && !isManager) {
+        throw new ForbiddenException("You have no permission to perform this action");
+      }
 
       return reservation;
     } catch (error) {
@@ -123,18 +133,20 @@ export class ReservationService {
       const isManager = user.employee?.employee_role.name === EmployeeRoles.MANAGER;
 
       if (!isOwner && !isAdmin && !isManager) {
-        throw new BadRequestException("You have no permission to perform this action");
+        throw new ForbiddenException("You have no permission to perform this action");
       }
     }
 
     if ([Status.SEATED.valueOf(), Status.FINISHED.valueOf(), Status.NO_SHOW.valueOf()].includes(status)) {
+      if(user.role.name === GeneralRoles.ADMIN) return;
+      
       if (!user.employee) {
-        throw new BadRequestException("You have no permission to perform this action");
+        throw new ForbiddenException("You have no permission to perform this action");
       }
 
       const allowedRoles = [EmployeeRoles.MANAGER.valueOf(), EmployeeRoles.WAITRESS.valueOf()];
       if (!allowedRoles.includes(user.employee.employee_role.name)) {
-        throw new BadRequestException("You have no permission to perform this action");
+        throw new ForbiddenException("You have no permission to perform this action");
       }
     }
   }
@@ -171,7 +183,7 @@ export class ReservationService {
     if (!schedule) {
       return {
         isAvailable: false,
-        error: "Restauran schedule not configured for this day"
+        error: "The restaurant schedule not configured for this day"
       }
     }
 
@@ -184,7 +196,7 @@ export class ReservationService {
 
     const reservationTime = reservationDate.format('HH:mm:ss');
     const lastAvailableReservationTime = dayjs(`${reservationDate.format("YYYY-MM-DD")} ${schedule?.closing_time}`).subtract(2, "hours").format("HH:mm:ss")
-    const openingTime = schedule.opening_time.substring(0, 5);
+    const openingTime = schedule.opening_time!.substring(0, 5);
 
     if (reservationTime > lastAvailableReservationTime || reservationTime < openingTime) {
       return {
@@ -199,16 +211,12 @@ export class ReservationService {
   }
 
   private async validateUserReservations(reservationDate: dayjs.Dayjs, user_id: string): Promise<{ canMakeAreservation: boolean, error?: string }> {
-    const userReservations = await this.reservationRepository.count({
-      where: {
-        user: {
-          id: user_id
-        },
-        date: reservationDate.toDate(),
-        status: In([Status.CONFIRMED, Status.SEATED])
-      }
-    })
 
+    const userReservations = await this.reservationRepository.createQueryBuilder("reservation")
+      .leftJoin("reservation.user", "user")
+      .where("user.id = :user_id", { user_id })
+      .andWhere("reservation.date = :date", { date: reservationDate.format("YYYY-MM-DD") })
+      .getCount()
     if (userReservations === 3) {
       return {
         canMakeAreservation: false,
@@ -239,23 +247,37 @@ export class ReservationService {
 
     const reservationEnd = reservationStart.add(2, "hours")
 
-    const conflictReservations = await this.reservationRepository.createQueryBuilder("reservation")
+    const query = this.reservationRepository.createQueryBuilder("reservation")
       .leftJoin("reservation.table", "table")
       .where("table.id = :table_id", { table_id })
-      .andWhere("reservation.date = :date", { date: reservationStart.toDate() })
+      .andWhere("reservation.date = :date", { date: reservationStart.format("YYYY-MM-DD") })
       .andWhere("reservation.status In (:...statuses)", {
         statuses: [Status.CONFIRMED, Status.SEATED]
       })
-      .andWhere(
-        "(reservation.time_start < :endTime AND " +
-        "DATE_ADD(reservation.time_start, INTERVAL :duration HOUR) > :startTime)",
+
+    if (this.dataSource.options?.type === "sqlite") {
+      query.andWhere(
+        `"reservation"."time_start" < :endTime
+     AND TIME("reservation"."time_start", '+2 hours') > :startTime`,
         {
           startTime: reservationStart.format("HH:mm:ss"),
           endTime: reservationEnd.format('HH:mm:ss'),
           duration: 2
         }
-      ).getMany()
+      );
+    } else {
+      query.andWhere(
+        `"reservation"."time_start" < :endTime
+     AND "reservation"."time_start" + interval '2 hour' > :startTime`,
+        {
+          startTime: reservationStart.format("HH:mm:ss"),
+          endTime: reservationEnd.format('HH:mm:ss'),
+          duration: 2
+        }
+      )
+    }
 
+    const conflictReservations = await query.getMany()
     if (conflictReservations.length > 0) {
       return {
         isTableAvailable: false,

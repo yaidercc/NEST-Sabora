@@ -157,7 +157,7 @@ export class UserService {
         const queryBuilder = this.userRepository.createQueryBuilder("user");
         user = await queryBuilder
           .leftJoinAndSelect("user.role", "role")
-          .where("(LOWER(email) = :term OR LOWER(phone) = :term OR LOWER(full_name) = :term)", { term: term.toLowerCase() })
+          .where("(LOWER(email) = :term OR LOWER(phone) = :term OR LOWER(full_name) = :term OR LOWER(username) = :term)", { term: term.toLowerCase() })
           .addSelect("user.is_active")
           .getOne()
       }
