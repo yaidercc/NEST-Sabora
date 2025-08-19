@@ -1,15 +1,17 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { IsString, ValidateIf } from "class-validator";
+import { IsInt, IsNumber, IsPositive, IsString, ValidateIf } from "class-validator";
 
 export class CreateTableDto {
 
     @ApiProperty({
         description: "Table capacity",
-        example: "3"
+        example: 3
     })
     @ValidateIf((value) => value !== null && value !== undefined)
-    @IsString()
-    capacity: string;
+    @IsNumber()
+    @IsInt()
+    @IsPositive()
+    capacity: number;
 
     @ApiProperty({
         description: "Table name",

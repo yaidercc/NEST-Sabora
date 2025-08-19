@@ -75,6 +75,20 @@ describe("Integrations test TablesService", () => {
         expect(response.body).toHaveLength(7)
     })
 
+    it("GET /table/find-by-capacity", async () => {
+        await TableMother.createManyTables(services.tableService, 1, 5);
+        await TableMother.createManyTables(services.tableService, 1, 4);
+        await TableMother.createManyTables(services.tableService, 1, 1);
+
+        const response = await request(app.getHttpServer())
+        .get(`/table/?limit=${10}&offset=${0}`)
+        .set('Authorization', `Bearer ${adminLogin?.token}`)
+        .send({capacity: 3})
+
+        expect(response.status).toBe(200)
+        expect(response.body.length).toBeGreaterThanOrEqual(2)
+    })
+
 
     it("PATCH /table", async () => {
         const [table] = await TableMother.createManyTables(services.tableService, 1)

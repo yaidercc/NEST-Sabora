@@ -32,7 +32,6 @@ describe("Integrations test UserService", () => {
     })
 
 
-
     it("Should get a table", async () => {
         const [{ is_active: _, ...table }] = await TableMother.createManyTables(services.tableService, 1);
         const response = await services.tableService.findOne(table.id)
@@ -41,9 +40,24 @@ describe("Integrations test UserService", () => {
         expect(response).toMatchObject(table)
     })
 
-    it("Should get all tables", async () => {
+    it("Should return all tables", async () => {
         const [table1, table2] = await TableMother.createManyTables(services.tableService, 2);
         const response = await services.tableService.findAll({ limit: 10, offset: 0 })
+
+        expect(response).toBeDefined()
+        expect(response).toHaveLength(2)
+        expect(response).toEqual([
+            { ...table1, is_active: undefined },
+            { ...table2, is_active: undefined }
+        ])
+    })
+
+    it("Should return all tables by capacity", async () => {
+        const [table1] = await TableMother.createManyTables(services.tableService, 1, 5);
+        const [table2] = await TableMother.createManyTables(services.tableService, 1, 4);
+        const [table3] = await TableMother.createManyTables(services.tableService, 1, 1);
+
+        const response = await services.tableService.findTablesByCapacity({ limit: 10, offset: 0 }, { capacity: 3 })
 
         expect(response).toBeDefined()
         expect(response).toHaveLength(2)
@@ -56,7 +70,7 @@ describe("Integrations test UserService", () => {
 
     it("Should update a table", async () => {
         const [{ is_active: _, ...table }] = await TableMother.createManyTables(services.tableService, 1);
-        const dtoUpdate = { capacity: "1" }
+        const dtoUpdate = { capacity: 1 }
 
         const response = await services.tableService.update(table.id, dtoUpdate)
 

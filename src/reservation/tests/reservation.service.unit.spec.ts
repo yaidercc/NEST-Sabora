@@ -203,7 +203,7 @@ describe("Unit ReservationServices tests", () => {
                 is_closed: false,
 
             })
-        mockTable.findOne.mockResolvedValue({ capacity: "1" })
+        mockTable.findOne.mockResolvedValue({ capacity: 1 })
 
         await expect(
             reservationService.create(reservationDTO)
