@@ -6,7 +6,7 @@ export class TableMother {
     static dto(tableInfo?: Partial<CreateTableDto>): CreateTableDto {
         return {
             name: tableInfo?.name ?? "100",
-            capacity: tableInfo?.capacity ?? "10"
+            capacity: tableInfo?.capacity ?? 10
         }
     }
 
@@ -22,7 +22,7 @@ export class TableMother {
         for (let j = 0; j < quantity; j++) {
             const employee = await tableService.create(TableMother.dto({
                 name: `${Array.from(roomsNames)[j]}`,
-                capacity:  `${capacity || Math.floor(Math.random() * 12) + 1}`
+                capacity:  capacity || Math.floor(Math.random() * 12) + 1
             }))
             if (employee) {
                 tables.push(employee)

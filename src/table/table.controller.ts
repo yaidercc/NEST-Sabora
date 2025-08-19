@@ -7,12 +7,12 @@ import { Auth } from 'src/user/decorators/auth.decorator';
 import { EmployeeRoles, GeneralRoles } from 'src/common/enums/roles';
 import { ApiBearerAuth, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { Table } from './entities/table.entity';
+import { SearchTableDto } from './dto/search-table.dto';
 
 @ApiBearerAuth('access-token')
 @Controller('table')
 export class TableController {
   constructor(private readonly tableService: TableService) { }
-
 
   @ApiOperation({ summary: "Create a table" })
   @ApiResponse({ status: 201, description: "table was created", type: Table })
@@ -24,10 +24,18 @@ export class TableController {
     return this.tableService.create(createTableDto);
   }
 
+  @ApiOperation({ summary: "Find tables by term of search" })
+  @ApiResponse({ status: 200, description: "Tables", type: [Table] })
+  @ApiResponse({ status: 404, description: "Tables not found" })
+  @Auth([GeneralRoles.ADMIN])
+  @Post("find-by-capacity")
+  findByCapacity(@Query() paginationDTO: PaginationDto, @Body() searchTableDto: SearchTableDto) {
+    return this.tableService.findTablesByCapacity(paginationDTO,searchTableDto);
+  }
 
   @ApiOperation({ summary: "Get all tables" })
   @ApiResponse({ status: 200, description: "Tables", type: [Table] })
-  @Auth([],{},[EmployeeRoles.WAITRESS])
+  @Auth()
   @Get()
   findAll(@Query() paginationDTO: PaginationDto) {
     return this.tableService.findAll(paginationDTO);
@@ -38,7 +46,7 @@ export class TableController {
   @ApiResponse({ status: 200, description: "Table", type: Table })
   @ApiResponse({ status: 400, description: "Table is not available" })
   @ApiResponse({ status: 404, description: "Table not found" })
-  @Auth([],{},[EmployeeRoles.WAITRESS])
+  @Auth()
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.tableService.findOne(id);

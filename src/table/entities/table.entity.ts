@@ -14,10 +14,10 @@ export class Table {
 
     @ApiProperty({
         description: "Table capacity",
-        example: "3"
+        example: 3
     })
-    @Column({ length: 40 })
-    capacity: string;
+    @Column({ type: "int" })
+    capacity: number;
 
     @ApiProperty({
         description: "Table name",

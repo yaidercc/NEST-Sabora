@@ -49,7 +49,7 @@ describe("Integrations test ReservationService", () => {
         reservationDTO.table_id = responseTable?.id!
 
         const response = await services.reservationService.create(reservationDTO)
-        console.log(response)
+
         expect(response).toBeDefined()
         expect(response).toMatchObject({
             id: expect.any(String),
@@ -100,7 +100,7 @@ describe("Integrations test ReservationService", () => {
 
     it("Should not create a reservation if the table capacity is not enough", async () => {
         const userDTO = UserMother.dto()
-        const tableDTO = TableMother.dto({ capacity: "1" })
+        const tableDTO = TableMother.dto({ capacity: 1 })
         const reservationDTO = ReservationMother.dto()
 
         const responseUser = await services.userService.create(userDTO)
@@ -182,7 +182,7 @@ describe("Integrations test ReservationService", () => {
         }
 
         const response = await services.reservationService.changeReservationStatus(reservation.id, reservationStatus, manager!)
-        console.log(response)
+
         expect(response).toBeDefined()
         expect(response?.status).toBe(reservationStatus.status)
     })

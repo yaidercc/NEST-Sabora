@@ -2,12 +2,13 @@ import { BadRequestException, Injectable, Logger, NotFoundException } from '@nes
 import { CreateTableDto } from './dto/create-table.dto';
 import { UpdateTableDto } from './dto/update-table.dto';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { MoreThanOrEqual, Repository } from 'typeorm';
 import { Table } from './entities/table.entity';
 import { handleException } from 'src/common/handleErrors';
 import { PaginationDto } from 'src/common/dtos/pagination.dto';
 import { validate as isUUID } from "uuid"
 import { isActive } from 'src/common/isActive';
+import { SearchTableDto } from './dto/search-table.dto';
 
 @Injectable()
 export class TableService {
@@ -35,6 +36,16 @@ export class TableService {
       take: limit,
       skip: offset,
       where: { is_active: true }
+    })
+  }
+
+  async findTablesByCapacity(paginationDTO: PaginationDto, searchTableDto: SearchTableDto) {
+    const { limit = 10, offset = 0 } = paginationDTO
+    const { capacity = 2 } = searchTableDto
+    return this.tableRepository.find({
+      take: limit,
+      skip: offset,
+      where: { is_active: true, capacity: MoreThanOrEqual(capacity) }
     })
   }
 

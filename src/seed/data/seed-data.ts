@@ -32,7 +32,7 @@ interface Employee {
 interface Table {
     id: string,
     name: string,
-    capacity: string
+    capacity: number
 }
 
 interface Schedule {
@@ -112,27 +112,27 @@ export const initialData: InitialData = {
         {
             id: uuid(),
             name: "001",
-            capacity: "4"
+            capacity: 4
         },
         {
             id: uuid(),
             name: "002",
-            capacity: "2"
+            capacity: 2
         },
         {
             id: uuid(),
             name: "003",
-            capacity: "1"
+            capacity: 1
         },
         {
             id: uuid(),
             name: "004",
-            capacity: "3"
+            capacity: 3
         },
         {
             id: uuid(),
             name: "005",
-            capacity: "7"
+            capacity: 7
         },
 
     ],

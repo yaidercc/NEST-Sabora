@@ -79,9 +79,25 @@ describe("Unit UserServices tests", () => {
         expect(response).toEqual(tableDTO);
     });
 
+    it('should return tables by capacity', async () => {
+        const table1 = { id: tableId, ...TableMother.dto(), capacity: 4 }
+        const table2 = { ...TableMother.dto(), id: uuid(), name: "Table 998", capacity: 5 }
+        const table3 = { ...TableMother.dto(), id: uuid(), name: "Table 999", capacity: 2 }
+
+        mockTable.find.mockReturnValue([
+            table1,
+            table2
+        ])
+
+        const response = await tableService.findTablesByCapacity({ limit: 10, offset: 0 }, { capacity: 4 });
+
+        expect(mockTable.find).toHaveBeenCalled()
+        expect(response).toEqual([table1, table2]);
+    });
+
     it('should update a table', async () => {
         const tableDTO = { id: tableId, ...TableMother.dto() }
-        const dtoUpdate = { capacity: "5" }
+        const dtoUpdate = { capacity: 5 }
         const updatedUser = { ...tableDTO, ...dtoUpdate }
 
         const mockQueryBuilder = {
