@@ -130,7 +130,7 @@ export class UserService {
       const { id } = user
       const is_active = await isActive(id, this.userRepository);
       if (!is_active) {
-        throw new BadRequestException("User is inactive")
+        throw new BadRequestException("User is not available")
       }
 
       bdUser.password = hashSync(password, genSaltSync());
@@ -166,7 +166,7 @@ export class UserService {
 
       const is_active = await isActive(user.id, this.userRepository);
       if (!is_active) {
-        throw new BadRequestException("User is inactive")
+        throw new BadRequestException("User is not available")
       }
 
       return user
@@ -192,7 +192,7 @@ export class UserService {
 
       const is_active = await isActive(id, this.userRepository);
       if (!is_active) {
-        throw new BadRequestException("User is inactive")
+        throw new BadRequestException("User is not available")
       }
 
       if (roleId.trim()) {
@@ -215,7 +215,7 @@ export class UserService {
 
       const is_active = await isActive(id, this.userRepository);
       if (!is_active) {
-        throw new BadRequestException("User is inactive")
+        throw new BadRequestException("User is not available")
       }
 
       if (user.employee) await this.employeeRepository.update(id, { is_active: false })

@@ -9,6 +9,7 @@ import { MailerModule } from "@nestjs-modules/mailer";
 import { EmployeeModule } from './employee/employee.module';
 import { TableModule } from './table/table.module';
 import { ReservationModule } from './reservation/reservation.module';
+import { MenuItemModule } from './menu_item/menu_item.module';
 
 @Module({
   imports: [
@@ -45,7 +46,8 @@ import { ReservationModule } from './reservation/reservation.module';
     SeedModule,
     EmployeeModule,
     TableModule,
-    ReservationModule
+    ReservationModule,
+    MenuItemModule
   ],
   controllers: [],
   providers: [],

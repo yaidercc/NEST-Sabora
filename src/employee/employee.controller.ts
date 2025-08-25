@@ -35,7 +35,7 @@ export class EmployeeController {
 
   @ApiOperation({ summary: "Find one employee by a term of search" })
   @ApiResponse({ status: 200, description: "Employee", type: Employee })
-  @ApiResponse({ status: 400, description: "Employee is inactive" })
+  @ApiResponse({ status: 400, description: "Employee is not available" })
   @ApiResponse({ status: 401, description: "Unauthorized" })
   @ApiResponse({ status: 404, description: "Employee not found" })
   @Get(':term')

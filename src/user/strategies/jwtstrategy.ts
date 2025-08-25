@@ -29,7 +29,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
             .where("user.id=:id", { id })
             .getOne()
         if (!user) throw new UnauthorizedException("Token not valid")
-        if (!user.is_active) throw new UnauthorizedException("User is inactive, talk with an admin")
+        if (!user.is_active) throw new UnauthorizedException("User is not available, talk with an admin")
         return user
     }
 }

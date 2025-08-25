@@ -94,7 +94,7 @@ export class TableService {
 
       await this.tableRepository.save(table)
 
-      return table
+      return await this.findOne(id)
 
     } catch (error) {
       handleException(error, this.logger)
@@ -108,7 +108,7 @@ export class TableService {
 
       const is_active = await isActive(id, this.tableRepository);
       if (!is_active) {
-        throw new BadRequestException("Table is inactive")
+        throw new BadRequestException("Table is not available")
       }
 
       return await this.tableRepository.update(id, { is_active: false })

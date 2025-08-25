@@ -114,7 +114,7 @@ export class EmployeeService {
 
       const is_active = await isActive(id, this.employeeRepository);
       if (!is_active) {
-        throw new BadRequestException("Employee is inactive")
+        throw new BadRequestException("Employee is not available")
       }
 
       if (toUpdate.user_id) {
@@ -153,7 +153,7 @@ export class EmployeeService {
       if (!employee) throw new NotFoundException("Employee not found")
       const is_active = await isActive(id, this.employeeRepository);
       if (!is_active) {
-        throw new BadRequestException("Employee is inactive")
+        throw new BadRequestException("Employee is not available")
       }
 
       const clientRole = await this.generalRoleRepository.findOneBy({ name: GeneralRoles.CLIENT })
