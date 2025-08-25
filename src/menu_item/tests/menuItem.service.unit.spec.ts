@@ -1,18 +1,12 @@
-import { DataSource, Repository } from "typeorm";
 import { Test, TestingModule } from "@nestjs/testing";
 import { getRepositoryToken } from "@nestjs/typeorm";
 import { menuItemId, mockMenuItemRepo } from "./mocks/menuItem.mock";
-import { EmployeeMother } from "./employeeMother";
-import { v4 as uuid } from "uuid"
-import { User } from "src/user/entities/user.entity";
-import { mockRoleRepo, mockUserRepo } from "src/user/tests/mocks/user.mocks";
-import { GeneralRole } from "src/user/entities/general_role.entity";
-import { mockDataSource, mockManager } from "src/common/tests/mocks/common.mocks";
 import { MenuItem } from "../entities/menu_item.entity";
 import { MenuItemService } from "../menu_item.service";
+import { MenuItemMother } from "./menuItemMother";
 
 
-describe("Unit EmployeeServices tests", () => {
+describe("Unit MenuItemServices tests", () => {
     let menuItemService: MenuItemService;
 
     beforeAll(async () => {
@@ -32,17 +26,19 @@ describe("Unit EmployeeServices tests", () => {
     })
 
 
-    it('should create an employee', async () => {
-        const employeeDTO = EmployeeMother.dto()
-        const employeeCreated = { ...employeeDTO, id: menuItemId }
+    it('should create a menu item', async () => {
+        const menuItemDTO = MenuItemMother.dto()
+        const menuItemCreated = { ...menuItemDTO, id: menuItemId }
 
-        mockMenuItemRepo.create.mockResolvedValue()
+        mockMenuItemRepo.find.mockResolvedValue(true)
+        mockMenuItemRepo.create.mockResolvedValue(menuItemCreated)
+        mockMenuItemRepo.save.mockResolvedValue(menuItemCreated)
 
-        const response = await menuItemService.create(employeeDTO)
+        const response = await menuItemService.create(menuItemDTO)
 
-        expect(mockManager.create).toHaveBeenCalled()
-        expect(mockManager.save).toHaveBeenCalled()
-        expect(response).toMatchObject(employeeCreated)
+        expect(mockMenuItemRepo.create).toHaveBeenCalled()
+        expect(mockMenuItemRepo.save).toHaveBeenCalled()
+        expect(response).toMatchObject(menuItemCreated)
 
     });
 

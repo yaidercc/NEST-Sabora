@@ -24,6 +24,9 @@ import { Schedule } from "src/reservation/entities/schedule.entity";
 import { Reservation } from "src/reservation/entities/reservation.entity";
 import { ReservationModule } from "src/reservation/reservation.module";
 import { ReservationService } from "src/reservation/reservation.service";
+import { MenuItemService } from "src/menu_item/menu_item.service";
+import { MenuItemModule } from "src/menu_item/menu_item.module";
+import { MenuItem } from "src/menu_item/entities/menu_item.entity";
 
 export class TestDatabaseManager {
     private static module: TestingModule;
@@ -46,18 +49,19 @@ export class TestDatabaseManager {
                         database: process.env.DB_NAME,
                         username: process.env.DB_USERNAME,
                         password: process.env.DB_PASSWORD,
-                        entities: [User, GeneralRole, Employee, EmployeeRole, Table, Schedule, Reservation],
+                        entities: [User, GeneralRole, Employee, EmployeeRole, Table, Schedule, Reservation, MenuItem],
                         synchronize: true,
                         dropSchema: true
                     }),
-                    TypeOrmModule.forFeature([User, GeneralRole, Employee, EmployeeRole, Table, Schedule, Reservation]),
+                    TypeOrmModule.forFeature([User, GeneralRole, Employee, EmployeeRole, Table, Schedule, Reservation, MenuItem]),
                     UserModule,
                     SeedModule,
                     EmployeeModule,
                     TableModule,
-                    ReservationModule
+                    ReservationModule,
+                    MenuItemModule
                 ],
-                providers: [EmployeeService, JwtService, SeedService, TableService, ReservationService]
+                providers: [EmployeeService, JwtService, SeedService, TableService, ReservationService, MenuItemService]
             }).compile()
 
             this.app = this.module.createNestApplication();
@@ -86,17 +90,18 @@ export class TestDatabaseManager {
                 TypeOrmModule.forRoot({
                     type: "sqlite",
                     database: ":memory:",
-                    entities: [Employee, EmployeeRole, User, GeneralRole, Table, Schedule, Reservation],
+                    entities: [Employee, EmployeeRole, User, GeneralRole, Table, Schedule, Reservation, MenuItem],
                     synchronize: true,
                     dropSchema: true
                 }),
-                TypeOrmModule.forFeature([Employee, EmployeeRole, User, GeneralRole, Table, Schedule, Reservation]),
+                TypeOrmModule.forFeature([Employee, EmployeeRole, User, GeneralRole, Table, Schedule, Reservation, MenuItem]),
                 EmployeeModule,
                 UserModule,
                 TableModule,
-                ReservationModule
+                ReservationModule,
+                MenuItemModule
             ],
-            providers: [EmployeeService, JwtService, SeedService, TableService, ReservationService]
+            providers: [EmployeeService, JwtService, SeedService, TableService, ReservationService, MenuItemService]
         }).compile()
 
         const seedService = this.module.get<SeedService>(SeedService);

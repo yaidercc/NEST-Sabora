@@ -15,6 +15,8 @@ import { TableService } from "src/table/table.service";
 import { Table } from "src/table/entities/table.entity";
 import { Reservation } from "src/reservation/entities/reservation.entity";
 import { ReservationService } from "src/reservation/reservation.service";
+import { MenuItem } from "src/menu_item/entities/menu_item.entity";
+import { MenuItemService } from "src/menu_item/menu_item.service";
 
 export interface TestServices {
     tableService: TableService;
@@ -22,6 +24,7 @@ export interface TestServices {
     seedService: SeedService;
     employeesService: EmployeeService;
     reservationService: ReservationService;
+    menuItemService: MenuItemService
 }
 
 export interface TestRepositories {
@@ -31,6 +34,7 @@ export interface TestRepositories {
     employeeRoleRepository: Repository<EmployeeRole>
     generalRoleRepository: Repository<GeneralRole>
     reservationRepository: Repository<Reservation>
+    menuItemRepository: Repository<MenuItem>
 }
 
 export interface AdminLogin {
@@ -52,6 +56,7 @@ export class TestHelpers {
             employeeRoleRepository: module.get<Repository<EmployeeRole>>(getRepositoryToken(EmployeeRole)),
             generalRoleRepository: module.get<Repository<GeneralRole>>(getRepositoryToken(GeneralRole)),
             reservationRepository: module.get<Repository<Reservation>>(getRepositoryToken(Reservation)),
+            menuItemRepository: module.get<Repository<MenuItem>>(getRepositoryToken(MenuItem)),
         }
     }
     static getServices(module: TestingModule): TestServices {
@@ -61,6 +66,7 @@ export class TestHelpers {
             seedService: module.get<SeedService>(SeedService),
             employeesService: module.get<EmployeeService>(EmployeeService),
             reservationService: module.get<ReservationService>(ReservationService),
+            menuItemService: module.get<MenuItemService>(MenuItemService),
 
         }
     }
