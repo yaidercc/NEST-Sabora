@@ -5,11 +5,12 @@ import { UserModule } from 'src/user/user.module';
 import { EmployeeModule } from 'src/employee/employee.module';
 import { TableModule } from 'src/table/table.module';
 import { ReservationModule } from 'src/reservation/reservation.module';
+import { MenuItemModule } from 'src/menu_item/menu_item.module';
 
 @Module({
   controllers: [SeedController],
   providers: [SeedService],
-  imports: [UserModule, EmployeeModule, TableModule,ReservationModule],
+  imports: [UserModule, EmployeeModule, TableModule,ReservationModule, MenuItemModule],
   exports: [SeedService]
 })
 export class SeedModule { }

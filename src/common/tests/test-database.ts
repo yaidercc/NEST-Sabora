@@ -9,7 +9,6 @@ import { EmployeeModule } from "src/employee/employee.module";
 import { EmployeeService } from "src/employee/employee.service";
 import { Employee } from "src/employee/entities/employee.entity";
 import { EmployeeRole } from "src/employee/entities/employee_role.entity";
-import { EmployeeMother } from "src/employee/tests/employeeMother";
 import { SeedModule } from "src/seed/seed.module";
 import { SeedService } from "src/seed/seed.service";
 import { Table } from "src/table/entities/table.entity";
@@ -18,8 +17,6 @@ import { TableService } from "src/table/table.service";
 import { GeneralRole } from "src/user/entities/general_role.entity";
 import { User } from "src/user/entities/user.entity";
 import { UserModule } from "src/user/user.module";
-import { TestHelpers } from "./test-helpers";
-import { UserMother } from "src/user/tests/userMother";
 import { Schedule } from "src/reservation/entities/schedule.entity";
 import { Reservation } from "src/reservation/entities/reservation.entity";
 import { ReservationModule } from "src/reservation/reservation.module";
@@ -27,6 +24,8 @@ import { ReservationService } from "src/reservation/reservation.service";
 import { MenuItemService } from "src/menu_item/menu_item.service";
 import { MenuItemModule } from "src/menu_item/menu_item.module";
 import { MenuItem } from "src/menu_item/entities/menu_item.entity";
+import { CommonModule } from "../common.module";
+import { UploadService } from "../services/upload.service";
 
 export class TestDatabaseManager {
     private static module: TestingModule;
@@ -59,7 +58,8 @@ export class TestDatabaseManager {
                     EmployeeModule,
                     TableModule,
                     ReservationModule,
-                    MenuItemModule
+                    MenuItemModule,
+                    CommonModule
                 ],
                 providers: [EmployeeService, JwtService, SeedService, TableService, ReservationService, MenuItemService]
             }).compile()
@@ -99,7 +99,8 @@ export class TestDatabaseManager {
                 UserModule,
                 TableModule,
                 ReservationModule,
-                MenuItemModule
+                MenuItemModule,
+                CommonModule
             ],
             providers: [EmployeeService, JwtService, SeedService, TableService, ReservationService, MenuItemService]
         }).compile()

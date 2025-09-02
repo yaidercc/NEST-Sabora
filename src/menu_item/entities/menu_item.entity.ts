@@ -20,6 +20,9 @@ export class MenuItem {
     @Index()
     menu_item_type: string;
 
+    @Column("text")
+    image: string;
+
     @Column("boolean", { default: true, select: false })
     is_active: boolean;
 }

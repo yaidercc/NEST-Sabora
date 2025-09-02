@@ -5,11 +5,11 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Employee } from './entities/employee.entity';
 import { DataSource, Not, Repository } from 'typeorm';
 import { EmployeeRole } from './entities/employee_role.entity';
-import { handleException } from 'src/common/handleErrors';
+import { handleException } from 'src/common/helpers/handleErrors';
 import { User } from 'src/user/entities/user.entity';
 import { validate as isUUID } from "uuid"
 import { PaginationDto } from 'src/common/dtos/pagination.dto';
-import { isActive } from 'src/common/isActive';
+import { isActive } from 'src/common/helpers/isActive';
 import { GeneralRole } from 'src/user/entities/general_role.entity';
 import { GeneralRoles } from 'src/common/enums/roles';
 

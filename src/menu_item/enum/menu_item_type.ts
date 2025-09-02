@@ -1,10 +1,10 @@
 export enum MenuItemType {
-    APPETIZER = 'Appetizer',
-    MAIN_COURSE = 'Main Course',
-    SIDE_DISH = 'Side Dish',
-    DESSERT = 'Dessert',
-    BEVERAGE = 'Beverage',
-    SNACK = 'Snack',
-    SALAD = 'Salad',
-    SOUP = 'Soup'
+    APPETIZER = 'appetizer',
+    MAIN_COURSE = 'main course',
+    SIDE_DISH = 'side dish',
+    DESSERT = 'dessert',
+    BEVERAGE = 'beverage',
+    SNACK = 'snack',
+    SALAD = 'salad',
+    SOUP = 'soup'
 }

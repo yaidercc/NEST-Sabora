@@ -1,19 +1,32 @@
 import { Test, TestingModule } from "@nestjs/testing";
 import { getRepositoryToken } from "@nestjs/typeorm";
-import { menuItemId, mockMenuItemRepo } from "./mocks/menuItem.mock";
+import { menuItemId, mockFile, mockMenuItemRepo } from "./mocks/menuItem.mock";
 import { MenuItem } from "../entities/menu_item.entity";
 import { MenuItemService } from "../menu_item.service";
 import { MenuItemMother } from "./menuItemMother";
-
+import { UploadService } from "src/common/services/upload.service";
+import { ConfigModule, ConfigService } from "@nestjs/config";
+import { EnvConfiguration } from "src/config/env.config";
+import { JoiEnvValidation } from "src/config/joi.validation";
+import { v4 as uuid } from "uuid"
+import { BadRequestException } from "@nestjs/common";
 
 describe("Unit MenuItemServices tests", () => {
     let menuItemService: MenuItemService;
+    let uploadService: UploadService
 
     beforeAll(async () => {
         const module: TestingModule = await Test.createTestingModule({
-            imports: [],
+            imports: [ConfigModule.forRoot({
+                envFilePath: ".env.test",
+                load: [EnvConfiguration],
+                validationSchema: JoiEnvValidation
+            }),],
             providers: [
                 MenuItemService,
+                UploadService,
+                ConfigService,
+
                 {
                     provide: getRepositoryToken(MenuItem),
                     useValue: mockMenuItemRepo
@@ -22,6 +35,7 @@ describe("Unit MenuItemServices tests", () => {
         }).compile()
 
         menuItemService = module.get<MenuItemService>(MenuItemService)
+        uploadService = module.get<UploadService>(UploadService)
 
     })
 
@@ -34,7 +48,7 @@ describe("Unit MenuItemServices tests", () => {
         mockMenuItemRepo.create.mockResolvedValue(menuItemCreated)
         mockMenuItemRepo.save.mockResolvedValue(menuItemCreated)
 
-        const response = await menuItemService.create(menuItemDTO)
+        const response = await menuItemService.create(menuItemDTO, mockFile)
 
         expect(mockMenuItemRepo.create).toHaveBeenCalled()
         expect(mockMenuItemRepo.save).toHaveBeenCalled()
@@ -43,87 +57,94 @@ describe("Unit MenuItemServices tests", () => {
     });
 
 
-    // it('should return an employee', async () => {
-    //     const employeeDTO = EmployeeMother.dto()
-    //     const employeeCreated = { ...employeeDTO, id: employeeId }
+    it('should return a menu item', async () => {
+        const menuItemDTO = { id: menuItemId, ...MenuItemMother.dto() }
 
-    //     const mockQueryBuilder = {
-    //         leftJoinAndSelect: jest.fn().mockReturnThis(),
-    //         select: jest.fn().mockReturnThis(),
-    //         where: jest.fn().mockReturnThis(),
-    //         andWhere: jest.fn().mockReturnThis(),
-    //         getOne: jest.fn().mockResolvedValue(employeeCreated)
-    //     }
+        const mockQueryBuilder = {
+            select: jest.fn().mockReturnThis(),
+            where: jest.fn().mockReturnThis(),
+            getRawOne: jest.fn().mockResolvedValue({ is_active: true })
+        }
 
-    //     mockEmployeeRepo.createQueryBuilder.mockReturnValue(mockQueryBuilder)
-
-    //     const response = await employeeService.findOne(employeeCreated.id)
-    //     expect(mockQueryBuilder.leftJoinAndSelect).toHaveBeenCalledTimes(2)
-    //     expect(mockQueryBuilder.getOne).toHaveBeenCalledTimes(1)
-    //     expect(response).toMatchObject(employeeCreated)
-
-    // });
-
-    // it('should return all employee', async () => {
-    //     const employee1Created = { ...EmployeeMother.dto(), id: employeeId }
-    //     const employee2Created = { ...EmployeeMother.dto({ user_id: uuid(), employee_role_id: uuid() }), id: employeeId }
+        mockMenuItemRepo.createQueryBuilder.mockReturnValue(mockQueryBuilder)
+        mockMenuItemRepo.findOneBy.mockReturnValue(menuItemDTO)
 
 
-    //     mockEmployeeRepo.find.mockReturnValue([
-    //         employee1Created,
-    //         employee2Created
-    //     ])
+        const response = await menuItemService.findOne(menuItemId);
 
-    //     const response = await employeeService.findAll({ limit: 10, offset: 0 })
+        expect(mockMenuItemRepo.createQueryBuilder).toHaveBeenCalled()
+        expect(mockMenuItemRepo.findOneBy).toHaveBeenCalled()
+        expect(response).toEqual(menuItemDTO);
+    });
 
-    //     expect(mockEmployeeRepo.find).toHaveBeenCalled()
-    //     expect(response).toEqual([
-    //         employee1Created,
-    //         employee2Created
-    //     ])
-
-    // });
+    it('should return all menu items', async () => {
+        const menuItemCreated1 = { ...MenuItemMother.dto(), id: menuItemId }
+        const menuItemCreated2 = { ...MenuItemMother.dto(), id: uuid() }
 
 
-    // it('should update an employee', async () => {
-    //     const originalEmployee = { ...EmployeeMother.dto(), id: employeeId }
-    //     const dtoUpdate = { hiring_date: "2022-10-12" }
-    //     const updatedEmployee = { ...originalEmployee, ...dtoUpdate }
+        mockMenuItemRepo.find.mockReturnValue([
+            menuItemCreated1,
+            menuItemCreated2
+        ])
+
+        const response = await menuItemService.findAll({ limit: 10, offset: 0 })
+
+        expect(mockMenuItemRepo.find).toHaveBeenCalled()
+        expect(response).toEqual([
+            menuItemCreated1,
+            menuItemCreated2
+        ])
+
+    });
 
 
-    //     const mockQueryBuilder = {
-    //         select: jest.fn().mockReturnThis(),
-    //         where: jest.fn().mockReturnThis(),
-    //         andWhere: jest.fn().mockReturnThis(),
-    //         leftJoinAndSelect: jest.fn().mockReturnThis(),
-    //         getRawOne: jest.fn().mockResolvedValue({ is_active: true }),
-    //         getOne: jest.fn().mockResolvedValue(updatedEmployee)
-    //     }
-
-    //     mockEmployeeRepo.createQueryBuilder.mockReturnValue(mockQueryBuilder)
-
-    //     mockEmployeeRepo.preload.mockReturnValue(updatedEmployee)
-    //     mockEmployeeRepo.save.mockReturnValue(updatedEmployee)
-
-    //     const response = await employeeService.update(employeeId, dtoUpdate)
-
-    //     expect(mockEmployeeRepo.preload).toHaveBeenCalled()
-    //     expect(mockEmployeeRepo.save).toHaveBeenCalled()
-    //     expect(mockEmployeeRepo.createQueryBuilder).toHaveBeenCalled()
-    //     expect(response).toMatchObject(updatedEmployee)
+    it('should update an employee', async () => {
+        const originalmenuItem = { ...MenuItemMother.dto(), id: menuItemId }
+        const dtoUpdate = { price: 80000 }
+        const updatedMenuItem = { ...originalmenuItem, ...dtoUpdate }
 
 
-    // });
+        const mockQueryBuilder = {
+            select: jest.fn().mockReturnThis(),
+            where: jest.fn().mockReturnThis(),
+            getRawOne: jest.fn().mockResolvedValue({ is_active: true })
+        }
 
-    // it('should delete an employee', async () => {
-    //     const employee1Created = { ...EmployeeMother.dto(), id: employeeId }
-    //     mockEmployeeRepo.findOneBy.mockReturnValue(employee1Created)
-    //     await employeeService.remove(employee1Created.id)
-    //     expect(mockEmployeeRepo.update).toHaveBeenCalled()
+        mockMenuItemRepo.createQueryBuilder.mockReturnValue(mockQueryBuilder)
 
-    // });
+        mockMenuItemRepo.update.mockReturnValue(updatedMenuItem)
+        mockMenuItemRepo.findOneBy.mockReturnValue(updatedMenuItem)
+
+        const response = await menuItemService.update(menuItemId, dtoUpdate)
+
+        expect(mockMenuItemRepo.findOneBy).toHaveBeenCalled()
+        expect(mockMenuItemRepo.update).toHaveBeenCalled()
+        expect(mockMenuItemRepo.createQueryBuilder).toHaveBeenCalled()
+        expect(response).toMatchObject(updatedMenuItem)
 
 
+    });
 
+    it('should delete a menu item', async () => {
+        const menuItemCreated = { ...MenuItemMother.dto(), id: menuItemId }
+
+        mockMenuItemRepo.findOneBy.mockReturnValue(menuItemCreated)
+        await menuItemService.remove(menuItemCreated.id)
+
+        const mockQueryBuilder = {
+            select: jest.fn().mockReturnThis(),
+            where: jest.fn().mockReturnThis(),
+            getRawOne: jest.fn().mockResolvedValue({ is_active: false })
+        }
+
+        mockMenuItemRepo.createQueryBuilder.mockReturnValue(mockQueryBuilder)
+
+
+        expect(mockMenuItemRepo.update).toHaveBeenCalled()
+        await expect(
+            menuItemService.findOne(menuItemId)
+        ).rejects.toThrow(BadRequestException);
+
+    });
 
 })

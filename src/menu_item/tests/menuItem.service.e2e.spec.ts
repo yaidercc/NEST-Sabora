@@ -6,7 +6,8 @@ import { GeneralRoles } from "src/common/enums/roles";
 import { AdminLogin, TestHelpers, TestRepositories, TestServices } from "src/common/tests/test-helpers";
 import { TestDatabaseManager } from "src/common/tests/test-database";
 import { MenuItemMother } from "./menuItemMother";
-
+import { mockFile } from "./mocks/menuItem.mock";
+// TODO: implement test to upload an image
 describe("Integrations test MenuItemService", () => {
     let module: TestingModule;
     let app: INestApplication
@@ -45,83 +46,86 @@ describe("Integrations test MenuItemService", () => {
         const response = await request(app.getHttpServer())
             .post('/menu-item')
             .set('Authorization', `Bearer ${adminLogin?.token}`)
-            .send(menuItemDto)
+            .field('name', menuItemDto.name)
+            .field('description', menuItemDto.description)
+            .field('price', menuItemDto.price)
+            .field('menu_item_type', menuItemDto.menu_item_type)
+            .attach('file', mockFile.buffer, mockFile.filename)
 
         expect(response.status).toBe(201)
         expect(response.body).toBeDefined()
         expect(response.body).toMatchObject({
             ...menuItemDto,
+            price: menuItemDto.price.toString(),
             name: menuItemDto.name.toLowerCase()
         })
     })
 
-    // it("GET /employee/:term", async () => {
-    //     const [employee] = await EmployeeMother.createManyEmployees(services.employeesService, services.userService, 1, employeeRoles)
+    it("GET /menu-item/:term", async () => {
+        const [menuItem] = await MenuItemMother.createManyMenuItems(services.menuItemService, 1)
 
-    //     const response = await request(app.getHttpServer())
-    //         .get(`/employee/${employee.id}`)
-    //         .set('Authorization', `Bearer ${adminLogin?.token}`)
+        const response = await request(app.getHttpServer())
+            .get(`/menu-item/${menuItem.id}`)
+            .set('Authorization', `Bearer ${adminLogin?.token}`)
 
-    //     expect(response.status).toBe(200)
-    //     expect(response.body).toBeDefined()
-    //     expect(response.body).toMatchObject({
-    //         id: employee.id,
-    //         hiring_date: employee.hiring_date,
-    //         user: {
-    //             id: employee.user.id
-    //         },
-    //         employee_role: {
-    //             id: employee.employee_role.id
-    //         }
-    //     })
+        expect(response.status).toBe(200)
+        expect(response.body).toBeDefined()
+        expect(response.body).toMatchObject({
+            id: menuItem.id,
+            name: menuItem.name,
+            description: menuItem.description,
+            price: menuItem.price,
+            menu_item_type: menuItem.menu_item_type,
+            image: menuItem.image
+        })
 
-    // })
+    })
 
-    // it("GET /employee", async () => {
-    //     await EmployeeMother.createManyEmployees(services.employeesService, services.userService, 2, employeeRoles)
+    it("GET /menu-item", async () => {
+        await MenuItemMother.createManyMenuItems(services.menuItemService, 2)
 
-    //     const response = await request(app.getHttpServer())
-    //         .get(`/employee/?limit=${10}&offset=${0}`)
-    //         .set('Authorization', `Bearer ${adminLogin?.token}`)
+        const response = await request(app.getHttpServer())
+            .get(`/menu-item/?limit=${10}&offset=${0}`)
+            .set('Authorization', `Bearer ${adminLogin?.token}`)
 
-    //     expect(response.status).toBe(200)
-    //     expect(response.body).toBeDefined()
-    //     expect(response.body.length).toBe(3)
+        expect(response.status).toBe(200)
+        expect(response.body).toBeDefined()
+        expect(response.body.length).toBe(6)
 
-    // })
+    })
 
-    // it('PATCH /employee', async () => {
-    //     const [employee] = await EmployeeMother.createManyEmployees(services.employeesService, services.userService, 1, employeeRoles)
-    //     const dtoUpdate = { hiring_date: "2022-10-12" }
+    it('PATCH /menu-item', async () => {
+        const [menuItem] = await MenuItemMother.createManyMenuItems(services.menuItemService, 1)
+        const dtoUpdate = { price: 100000 }
 
-    //     const response = await request(app.getHttpServer())
-    //         .patch(`/employee/${employee.id}`)
-    //         .set('Authorization', `Bearer ${adminLogin?.token}`)
-    //         .send(dtoUpdate)
-    //     expect(response.status).toBe(200)
-    //     expect(response.body.hiring_date).toBe(dtoUpdate.hiring_date)
+        const response = await request(app.getHttpServer())
+            .patch(`/menu-item/${menuItem.id}`)
+            .set('Authorization', `Bearer ${adminLogin?.token}`)
+            .send(dtoUpdate)
+        expect(response.status).toBe(200)
+        expect(response.body.price).toBe(dtoUpdate.price)
 
-    // });
+    });
 
 
-    // it('DELETE /employee', async () => {
-    //     const [employee] = await EmployeeMother.createManyEmployees(services.employeesService, services.userService, 1, employeeRoles)
+    it('DELETE /employee', async () => {
+        const [menuItem] = await MenuItemMother.createManyMenuItems(services.menuItemService, 1)
 
 
-    //     const response = await request(app.getHttpServer())
-    //         .delete(`/employee/${employee.id}`)
-    //         .set('Authorization', `Bearer ${adminLogin?.token}`)
+        const response = await request(app.getHttpServer())
+            .delete(`/menu-item/${menuItem.id}`)
+            .set('Authorization', `Bearer ${adminLogin?.token}`)
 
 
-    //     const employeeAfterChange = await repositories.employeeRepository
-    //         .createQueryBuilder("employee")
-    //         .addSelect("employee.is_active")
-    //         .where("employee.id = :id", { id: employee.id })
-    //         .getOne();
+        const menuItemAfterChange = await repositories.employeeRepository
+            .createQueryBuilder("menuItem")
+            .addSelect("menuItem.is_active")
+            .where("menuItem.id = :id", { id: menuItem.id })
+            .getOne();
 
-    //     expect(response.status).toBe(200)
-    //     expect(employee?.is_active).toBeTruthy()
-    //     expect(employeeAfterChange?.is_active).toBeFalsy()
+        expect(response.status).toBe(200)
+        expect(menuItem?.is_active).toBeTruthy()
+        expect(menuItemAfterChange?.is_active).toBeFalsy()
 
-    // });
+    });
 })

@@ -5,7 +5,7 @@ import { DataSource, In, Repository } from 'typeorm';
 import { Reservation } from './entities/reservation.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Schedule } from './entities/schedule.entity';
-import { handleException } from 'src/common/handleErrors';
+import { handleException } from 'src/common/helpers/handleErrors';
 import { User } from 'src/user/entities/user.entity';
 import { Table } from 'src/table/entities/table.entity';
 import * as dayjs from "dayjs"

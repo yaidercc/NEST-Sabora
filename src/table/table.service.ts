@@ -4,10 +4,10 @@ import { UpdateTableDto } from './dto/update-table.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { MoreThanOrEqual, Repository } from 'typeorm';
 import { Table } from './entities/table.entity';
-import { handleException } from 'src/common/handleErrors';
+import { handleException } from 'src/common/helpers/handleErrors';
 import { PaginationDto } from 'src/common/dtos/pagination.dto';
 import { validate as isUUID } from "uuid"
-import { isActive } from 'src/common/isActive';
+import { isActive } from 'src/common/helpers/isActive';
 import { SearchTableDto } from './dto/search-table.dto';
 
 @Injectable()

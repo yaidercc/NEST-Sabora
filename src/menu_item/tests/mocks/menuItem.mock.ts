@@ -13,3 +13,15 @@ export const mockMenuItemRepo = {
     update: jest.fn()
 }
 
+export const mockFile: Express.Multer.File = {
+    fieldname: 'file',
+    originalname: 'test-product.jpg',     
+    encoding: '7bit',
+    mimetype: 'image/jpeg',               
+    size: 1024,
+    destination: '/tmp/uploads',
+    filename: 'test-product-123456789.jpg',
+    path: '/tmp/uploads/test-product-123456789.jpg',
+    buffer: Buffer.from('fake-image-data'), 
+    stream: {} as any
+};

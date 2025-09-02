@@ -2,6 +2,7 @@ import { TestingModule } from "@nestjs/testing";
 import { TestDatabaseManager } from "src/common/tests/test-database";
 import { TestHelpers, TestRepositories, TestServices } from "src/common/tests/test-helpers";
 import { MenuItemMother } from "./menuItemMother";
+import { mockFile } from "./mocks/menuItem.mock";
 
 
 describe("Integrations test MenuItemService", () => {
@@ -25,67 +26,65 @@ describe("Integrations test MenuItemService", () => {
 
     it("Should create a menu item", async () => {
         const menuItemDto = MenuItemMother.dto();
-        const responseMenuItem = await services.menuItemService.create(menuItemDto)
-        
+        const responseMenuItem = await services.menuItemService.create(menuItemDto, mockFile)
+
         expect(responseMenuItem).toBeDefined()
         expect(responseMenuItem).toMatchObject({
             ...menuItemDto,
             name: menuItemDto.name.toLowerCase()
         })
-       
+
     })
 
 
-    // it("Should return an employee", async () => {
-    //     const [employee] = await EmployeeMother.createManyEmployees(services.employeesService, services.userService, 1, employeeRoles)
-    //     const response = await services.employeesService.findOne(employee.id)
-    //     expect(response).toMatchObject({
-    //         id: employee.id,
-    //         hiring_date: employee.hiring_date,
-    //         user: {
-    //             id: employee.user.id
-    //         },
-    //         employee_role: {
-    //             id: employee.employee_role.id
-    //         }
-    //     })
-    // })
+    it("Should return an menu item", async () => {
+        const [menuItem] = await MenuItemMother.createManyMenuItems(services.menuItemService, 1)
+        const response = await services.menuItemService.findOne(menuItem.id)
+        expect(response).toMatchObject({
+            id: menuItem.id,
+            name: menuItem.name,
+            description: menuItem.description,
+            price: menuItem.price,
+            menu_item_type: menuItem.menu_item_type,
+            image: menuItem.image,
+        })
+    })
 
-    // it("should return all employees", async () => {
-    //     await EmployeeMother.createManyEmployees(services.employeesService, services.userService, 2, employeeRoles)
+    it("should return all menu items", async () => {
+        await MenuItemMother.createManyMenuItems(services.menuItemService, 2)
 
-    //     const response = await services.employeesService.findAll({ limit: 10, offset: 0 })
+        const response = await services.menuItemService.findAll({ limit: 10, offset: 0 })
 
-    //     expect(response).toBeDefined()
-    //     expect(response.length).toBe(2)
+        expect(response).toBeDefined()
+        expect(response.length).toBe(2)
 
-    // })
+    })
 
-    // it('should update an employee', async () => {
-    //     const [employee] = await EmployeeMother.createManyEmployees(services.employeesService, services.userService, 1, employeeRoles)
-    //     const dtoUpdate = { hiring_date: "2022-10-12" }
+    it('should update a menu item', async () => {
+        const [menuItem] = await MenuItemMother.createManyMenuItems(services.menuItemService, 1)
+        const dtoUpdate = { price: 80000 }
 
-    //     const response = await services.employeesService.update(employee.id, dtoUpdate)
+        const response = await services.menuItemService.update(menuItem.id, dtoUpdate)
 
-    //     expect(response?.hiring_date).toBe(dtoUpdate.hiring_date)
+        expect(response?.price).toBe(dtoUpdate.price)
 
 
-    // });
+    });
 
-    // it('should delete an employee', async () => {
-    //     const [employee] = await EmployeeMother.createManyEmployees(services.employeesService, services.userService, 1, employeeRoles)
+    it('should delete a menu item', async () => {
+        const [menuItem] = await MenuItemMother.createManyMenuItems(services.menuItemService, 1)
 
-    //     await services.employeesService.remove(employee.id)
-    //     const response = await repositories.employeeRepository.createQueryBuilder("employee")
-    //         .select("is_active")
-    //         .where("employee.id=:id", {
-    //             id: employee.id,
-    //         })
-    //         .getOne()
+        await services.menuItemService.remove(menuItem.id)
+        const response = await repositories.employeeRepository.createQueryBuilder("menuItem")
+            .select("is_active")
+            .where("menuItem.id=:id", {
+                id: menuItem.id,
+            })
+            .getOne()
 
-    //     expect(response?.is_active).toBeFalsy()
+        expect(response?.is_active).toBeFalsy()
 
-    // });
+    });
 
 })
 

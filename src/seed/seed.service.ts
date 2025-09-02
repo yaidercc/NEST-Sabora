@@ -11,6 +11,7 @@ import { EmployeeRole } from 'src/employee/entities/employee_role.entity';
 import { Table } from 'src/table/entities/table.entity';
 import { Schedule } from 'src/reservation/entities/schedule.entity';
 import { Reservation } from 'src/reservation/entities/reservation.entity';
+import { MenuItem } from 'src/menu_item/entities/menu_item.entity';
 
 @Injectable()
 export class SeedService {
@@ -30,7 +31,9 @@ export class SeedService {
     @InjectRepository(Schedule)
     private readonly scheduleRepository: Repository<Schedule>,
     @InjectRepository(Reservation)
-    private readonly reservationRepository: Repository<Reservation>
+    private readonly reservationRepository: Repository<Reservation>,
+    @InjectRepository(MenuItem)
+    private readonly menuItemRepository: Repository<MenuItem>,
   ) { }
 
   async executeSEED() {
@@ -41,6 +44,7 @@ export class SeedService {
     await this.insertEmployee(user!, employeeRole);
     await this.insertTables()
     await this.insertSchedules()
+    await this.insertMenuItems()
     return "SEED EXECUTED"
   }
 
@@ -52,6 +56,7 @@ export class SeedService {
     await this.employeeRoleRepository.createQueryBuilder().delete().where({}).execute()
     await this.scheduleRepository.createQueryBuilder().delete().where({}).execute()
     await this.tableRepository.createQueryBuilder().delete().where({}).execute()
+    await this.menuItemRepository.createQueryBuilder().delete().where({}).execute()
 
   }
 
@@ -99,6 +104,12 @@ export class SeedService {
     const schedule = initialData.schedule.map((item) => this.scheduleRepository.create(item))
     await this.scheduleRepository.save(schedule)
     return schedule
+  }
+
+  private async insertMenuItems() {
+    const menuItem = initialData.menuItem.map((item) => this.menuItemRepository.create(item))
+    await this.menuItemRepository.save(menuItem)
+    return menuItem
   }
 }
 

@@ -5,30 +5,34 @@ import { UpdateMenuItemDto } from './dto/update-menu_item.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { MenuItem } from './entities/menu_item.entity';
 import { Repository } from 'typeorm';
-import { handleException } from 'src/common/handleErrors';
+import { handleException } from 'src/common/helpers/handleErrors';
 import { validateExistence } from 'src/common/helpers/validateExistence';
 import { validate as isUUID } from "uuid"
-import { isActive } from 'src/common/isActive';
+import { isActive } from 'src/common/helpers/isActive';
+import { UploadService } from 'src/common/services/upload.service';
 
 @Injectable()
 export class MenuItemService {
   private readonly logger = new Logger("MenuItemService")
   constructor(
     @InjectRepository(MenuItem)
-    private readonly menuItemRepository: Repository<MenuItem>
+    private readonly menuItemRepository: Repository<MenuItem>,
+    private readonly uploadsService: UploadService
   ) { }
-  async create(createMenuItemDto: CreateMenuItemDto) {
+  async create(createMenuItemDto: CreateMenuItemDto, file: Express.Multer.File) {
     try {
       const existsMenuItem = await validateExistence(this.menuItemRepository, {
         name: createMenuItemDto.name.trim().toLowerCase()
       })
       if (!existsMenuItem) throw new BadRequestException(`Menu item already exits`)
 
+      const image = await this.uploadsService.create(file)
+
       const menuItem = this.menuItemRepository.create({
         ...createMenuItemDto,
-        name: createMenuItemDto.name.trim().toLowerCase()
+        name: createMenuItemDto.name.trim().toLowerCase(),
+        image
       })
-
       await this.menuItemRepository.save(menuItem);
 
       return menuItem;
@@ -55,24 +59,37 @@ export class MenuItemService {
     else menuItem = await this.menuItemRepository.findOneBy({ name: term.trim().toLowerCase() })
 
     if (!menuItem) throw new NotFoundException("Menu item not found")
-    if (!menuItem.is_active) throw new BadRequestException("Menu item is not available")
+
+    const is_active = await isActive(menuItem.id, this.menuItemRepository);
+    if (!is_active) {
+      throw new BadRequestException("Menu item is not available")
+    }
 
     return menuItem
   }
 
-  async update(id: string, updateMenuItemDto: UpdateMenuItemDto) {
+  async update(id: string, updateMenuItemDto?: UpdateMenuItemDto, file?: Express.Multer.File) {
     try {
-      const menuItem = await this.menuItemRepository.preload({
-        id,
-        ...updateMenuItemDto
-      })
+      if (!updateMenuItemDto && !file) throw new BadRequestException("you must provide a file or data to update");
 
-      if (!menuItem) throw new NotFoundException("Menu item not found")
-      if (!menuItem.is_active) throw new BadRequestException("Menu item is not available")
+      let menuItem = await this.findOne(id)
 
-      menuItem.name = menuItem.name.trim().toLowerCase()
+      if (updateMenuItemDto) {
+        if (updateMenuItemDto?.name) updateMenuItemDto.name = updateMenuItemDto.name.trim().toLowerCase()
 
-      await this.menuItemRepository.save(menuItem)
+        menuItem = {
+          ...menuItem,
+          ...updateMenuItemDto
+        }
+
+      }
+
+
+      if (file) {
+        const image = await this.uploadsService.create(file)
+        menuItem.image = image!
+      }
+      await this.menuItemRepository.update(id, menuItem)
 
       return await this.findOne(id)
 
@@ -84,13 +101,7 @@ export class MenuItemService {
 
   async remove(id: string) {
     try {
-      const menuItem = await this.menuItemRepository.findOneBy({ id });
-      if (!menuItem) throw new NotFoundException("Menu item not found")
-
-      const is_active = await isActive(id, this.menuItemRepository);
-      if (!is_active) {
-        throw new BadRequestException("Menu item is not available")
-      }
+      await this.findOne(id);
 
       return await this.menuItemRepository.update(id, { is_active: false })
     } catch (error) {

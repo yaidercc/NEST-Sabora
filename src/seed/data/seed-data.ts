@@ -2,6 +2,7 @@
 import { v4 as uuid } from "uuid"
 import { genSaltSync, hashSync } from "bcrypt"
 import { EmployeeRoles, GeneralRoles } from "src/common/enums/roles"
+import { MenuItemType } from "src/menu_item/enum/menu_item_type"
 
 interface GeneralRole {
     id: string,
@@ -43,13 +44,23 @@ interface Schedule {
     is_closed: boolean;
 }
 
+interface MenuItem {
+    id: string;
+    name: string;
+    description: string;
+    price: number;
+    image: string;
+    menu_item_type: string;
+}
+
 interface InitialData {
     generalRoles: GeneralRole[],
     employeeRoles: EmployeeRole[]
     user: User[],
     employee: Employee,
     tables: Table[],
-    schedule: Schedule[]
+    schedule: Schedule[],
+    menuItem: MenuItem[],
 }
 
 export const initialData: InitialData = {
@@ -184,6 +195,40 @@ export const initialData: InitialData = {
             closing_time: "19:00:00",
             is_closed: false,
         }
+    ],
+    menuItem: [
+        {
+            id: uuid(),
+            name: "Pescado frito",
+            description:"Trucha frita con patacones, ensalada, sopa y arroz de coco",
+            price:  25000,
+            image: "https://res.cloudinary.com/dwbldpfvx/image/upload/v1756779868/download_qniu9a.jpg",
+            menu_item_type: MenuItemType.MAIN_COURSE
+        },
+        {
+            id: uuid(),
+            name: "Platano maduro con queso",
+            description:"Platano maduro asado con queso costeño y salsa de guayaba",
+            price:  10000,
+            image: "https://res.cloudinary.com/dwbldpfvx/image/upload/v1756780023/YDL4S37FUZCFLD2AVYYG75FOV4_cqgecq.avif",
+            menu_item_type: MenuItemType.DESSERT
+        },
+        {
+            id: uuid(),
+            name: "Jugos en leche",
+            description:"Jugo de mora, mango, piña, banano y guayaba",
+            price:  4500,
+            image: "https://res.cloudinary.com/dwbldpfvx/image/upload/v1756780138/jugos-naturales-1-1_ps3a5j.jpg",
+            menu_item_type: MenuItemType.BEVERAGE
+        },
+        {
+            id: uuid(),
+            name: "Frijoles con chicharron",
+            description:"Deliciosos frijoles con trocitos de chicharron carnudo",
+            price:  4500,
+            image: "https://res.cloudinary.com/dwbldpfvx/image/upload/v1756780162/260-image_web.jpg_bgcvak.webp",
+            menu_item_type: MenuItemType.BEVERAGE
+        },
     ]
 
 }

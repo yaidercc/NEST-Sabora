@@ -4,7 +4,7 @@ import { UpdateUserDto } from './dto/update-user.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from './entities/user.entity';
 import { Repository } from 'typeorm';
-import { handleException } from 'src/common/handleErrors';
+import { handleException } from 'src/common/helpers/handleErrors';
 import { genSaltSync, hashSync, compareSync } from "bcrypt"
 import { GeneralRole } from './entities/general_role.entity';
 import { validate as isUUID } from "uuid"
@@ -15,7 +15,7 @@ import * as sgMail from '@sendgrid/mail'; // sgMail library to send mails with h
 import { ConfigService } from '@nestjs/config';
 import { NewPassword, RequestTempPasswordDto } from './dto/reset.password.dto';
 import { GeneralRoles } from 'src/common/enums/roles';
-import { isActive } from 'src/common/isActive';
+import { isActive } from 'src/common/helpers/isActive';
 import { Employee } from 'src/employee/entities/employee.entity';
 
 
