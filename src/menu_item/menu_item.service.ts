@@ -1,5 +1,5 @@
 import { PaginationDto } from './../common/dtos/pagination.dto';
-import { BadRequestException, Injectable, Logger, NotFoundException } from '@nestjs/common';
+import { BadRequestException, ConflictException, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { CreateMenuItemDto } from './dto/create-menu_item.dto';
 import { UpdateMenuItemDto } from './dto/update-menu_item.dto';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -24,7 +24,7 @@ export class MenuItemService {
       const existsMenuItem = await validateExistence(this.menuItemRepository, {
         name: createMenuItemDto.name.trim().toLowerCase()
       })
-      if (!existsMenuItem) throw new BadRequestException(`Menu item already exits`)
+      if (!existsMenuItem) throw new ConflictException(`Menu item already exits`)
 
       const image = await this.uploadsService.create(file)
 

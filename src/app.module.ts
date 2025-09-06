@@ -10,6 +10,7 @@ import { EmployeeModule } from './employee/employee.module';
 import { TableModule } from './table/table.module';
 import { ReservationModule } from './reservation/reservation.module';
 import { MenuItemModule } from './menu_item/menu_item.module';
+import { OrderModule } from './order/order.module';
 
 @Module({
   imports: [
@@ -47,7 +48,8 @@ import { MenuItemModule } from './menu_item/menu_item.module';
     EmployeeModule,
     TableModule,
     ReservationModule,
-    MenuItemModule
+    MenuItemModule,
+    OrderModule
   ],
   controllers: [],
   providers: [],

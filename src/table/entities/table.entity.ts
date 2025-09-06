@@ -1,4 +1,5 @@
 import { ApiProperty } from "@nestjs/swagger";
+import { Order } from "src/order/entities/order.entity";
 import { Reservation } from "src/reservation/entities/reservation.entity";
 import { BeforeInsert, BeforeUpdate, Column, Entity, Index, OneToMany, PrimaryGeneratedColumn } from "typeorm";
 
@@ -35,6 +36,12 @@ export class Table {
         reservation => reservation.table
     )
     reservation: Reservation;
+
+    @OneToMany(
+        () => Order,
+        order => order.table
+    )
+    order: Order;
 
     @BeforeInsert()
     @BeforeUpdate()

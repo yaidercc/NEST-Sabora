@@ -97,6 +97,7 @@ export const initialData: InitialData = {
         },
 
     ],
+    
     user: [
         {
             id: uuid(),

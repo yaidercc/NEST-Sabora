@@ -10,6 +10,6 @@ import { UserModule } from 'src/user/user.module';
   imports: [TypeOrmModule.forFeature([MenuItem]), CommonModule,UserModule],
   controllers: [MenuItemController],
   providers: [MenuItemService],
-  exports: [TypeOrmModule]
+  exports: [TypeOrmModule, MenuItemService]
 })
 export class MenuItemModule {}

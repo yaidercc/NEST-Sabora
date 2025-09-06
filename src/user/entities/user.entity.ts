@@ -3,6 +3,7 @@ import { GeneralRole } from "./general_role.entity";
 import { ApiProperty } from "@nestjs/swagger";
 import { Employee } from "src/employee/entities/employee.entity";
 import { Reservation } from "src/reservation/entities/reservation.entity";
+import { Order } from "src/order/entities/order.entity";
 
 @Entity("user")
 export class User {
@@ -88,6 +89,12 @@ export class User {
         reservation => reservation.user
     )
     reservation: Reservation;
+
+    @OneToMany(
+        ()=> Order,
+        order => order.user
+    )
+    order: Order;
 
 
     @BeforeInsert()
