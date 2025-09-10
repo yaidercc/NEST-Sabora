@@ -27,7 +27,7 @@ export class OrderDetail {
 
     @ManyToOne(
         () => Order,
-        order => order.order_detail
+        order => order.order_details
     )
     order: Order;
     

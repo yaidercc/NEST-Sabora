@@ -3,16 +3,29 @@ import { CreateOrderDto } from "../dto/create-order.dto";
 import { v4 as uuid } from "uuid"
 import { Order } from "../entities/order.entity";
 import { OrderService } from "../order.service";
-// import { TableMother } from "./tableMother";
 import { MenuItemMother } from "src/menu_item/tests/menuItemMother";
 import { MenuItemService } from "src/menu_item/menu_item.service";
 import { MenuItem } from "src/menu_item/entities/menu_item.entity";
 import { TableService } from "src/table/table.service";
+import { TableMother } from "src/table/tests/tableMother";
+import { mockFile } from "src/menu_item/tests/mocks/menuItem.mock";
+import { UserMother } from "src/user/tests/userMother";
+import { UserService } from "src/user/user.service";
+import { User } from "src/user/entities/user.entity";
 
 export class OrderMother {
+
+    constructor(
+        private readonly menuItemService: MenuItemService,
+        private readonly tableService: TableService,
+        private readonly orderService: OrderService,
+        private readonly userService: UserService,
+    ) { }
+
     static dto(orderInfo?: Partial<CreateOrderDto>): CreateOrderDto {
         return {
             table: uuid(),
+            is_customer_order: orderInfo?.is_customer_order ?? true,
             order_details: orderInfo?.order_details ?? [
                 {
                     quantity: 2,
@@ -27,31 +40,84 @@ export class OrderMother {
         }
     }
 
-    // static async createManyTables(menuItemService: MenuItemService, tableService: TableService, orderService: OrderService, quantity: number): Promise<Order[]> {
-    //     let orders: Order[] = [];
+    async createManyOrders(quantity: number): Promise<Order[]> {
+        let orders: Order[] = [];
+        const tables = await TableMother.createManyTables(this.tableService, quantity);
+        const users = await UserMother.createManyUsers(this.userService, quantity);
 
-    //     for (let i = 0; i < quantity; i++) {
-    //         const [table] = await TableMother.createManyTables(tableService, 1)
-    //         const menuItems = await MenuItemMother.createManyMenuItems(menuItemService, 3)
-    //         let order_details: { menu_item: string, quantity: number }[] = []
 
-    //         for (let j = 0; j < menuItems.length; j++) {
-    //             order_details.push({
-    //                 menu_item: menuItems[j].id,
-    //                 quantity: 2
-    //             })
+        const waitressUsers = users.slice(0, Math.min(3, users.length));
+        const customerUsers = users.slice(3);
 
-    //         }
-    //         const order = await orderService.create(OrderMother.dto({
-    //             table,
-    //             order_details,
+        for (let i = 0; i < quantity; i++) {
+            const menuItems = await MenuItemMother.createManyMenuItems(this.menuItemService, 3);
 
-    //         }))
-    //         if (order) {
-    //             orders.push(order)
-    //         }
-    //     }
-    //     return orders
-    // }
+            let order_details: { menu_item: string, quantity: number }[] = [];
+            for (let j = 0; j < menuItems.length; j++) {
+                order_details.push({
+                    menu_item: menuItems[j].id,
+                    quantity: 2
+                });
+            }
+
+            let orderDto: CreateOrderDto;
+            const currentUser = users[i].user;
+            let userOrdering: Partial<User> = users[i].user
+
+            // Alternar entre diferentes escenarios
+            switch (i % 4) {
+                case 0: // Cliente pide su propia orden
+                    userOrdering = currentUser;
+                    orderDto = OrderMother.dto({
+                        table: tables[i].id,
+                        customer: currentUser.id, // Mismo usuario
+                        is_customer_order: true,
+                        order_details
+                    });
+                    break;
+
+                case 1: // Mesero toma pedido para cliente con cuenta
+                    const waitress = waitressUsers[i % waitressUsers.length];
+                    const customer = customerUsers[i % customerUsers.length] || currentUser;
+                    userOrdering = waitress.user;
+
+                    orderDto = OrderMother.dto({
+                        table: tables[i].id,
+                        customer: customer.user.id, // Para el cliente
+                        is_customer_order: false,
+                        order_details
+                    });
+                    break;
+
+                case 2: // Mesero toma pedido para cliente SIN cuenta
+                    const waitress2 = waitressUsers[i % waitressUsers.length];
+                    userOrdering = waitress2.user;
+                    orderDto = OrderMother.dto({
+                        table: tables[i].id,
+                        is_customer_order: false,
+                        order_details
+                    });
+                    break;
+
+                case 3: // Usuario con rol de mesero hace su propia orden (off-duty)
+                    const offDutyWaitress = waitressUsers[i % waitressUsers.length];
+                    userOrdering = offDutyWaitress.user;
+
+                    orderDto = OrderMother.dto({
+                        table: tables[i].id,
+                        customer: offDutyWaitress.user.id,
+                        is_customer_order: true,
+                        order_details
+                    });
+                    break;
+            }
+
+            const order = await this.orderService.create(orderDto!, userOrdering as User);
+            if (order) {
+                orders.push(order);
+            }
+        }
+        return orders;
+    }
 
 }

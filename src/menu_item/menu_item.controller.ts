@@ -6,7 +6,7 @@ import { PaginationDto } from 'src/common/dtos/pagination.dto';
 import { FileUploader } from 'src/common/decorators/fileUpload.decorator';
 import { Auth } from 'src/user/decorators/auth.decorator';
 import { EmployeeRoles, GeneralRoles } from 'src/common/enums/roles';
-import { ApiBearerAuth, ApiBody, ApiConsumes, ApiExtraModels, ApiOperation, ApiResponse, getSchemaPath } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiBody, ApiExtraModels, ApiOperation, ApiResponse, getSchemaPath } from '@nestjs/swagger';
 import { MenuItem } from './entities/menu_item.entity';
 
 

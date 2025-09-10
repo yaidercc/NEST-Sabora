@@ -1,8 +1,9 @@
 export const mockManager = {
     findOneBy: jest.fn().mockReturnThis(),
     findOne: jest.fn().mockReturnThis(),
-    create: jest.fn().mockReturnThis(),  // TODO: add this in users .mockReturnValue({ id: employeeId, ...EmployeeMother.dto() })
+    create: jest.fn().mockReturnThis(),  
     save: jest.fn().mockReturnThis(),
+    update: jest.fn().mockReturnThis(),
    
 }
 
@@ -18,4 +19,9 @@ export const mockDataSource = {
         }
     )
 }
+
+export const mockUploadService = {
+        create: jest.fn().mockResolvedValue('http://mock-cloudinary-url.com/image.jpg'),
+    };
+
 

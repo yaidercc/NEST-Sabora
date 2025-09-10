@@ -66,9 +66,7 @@ export class TableService {
         throw new BadRequestException("Table is not available")
       }
 
-      const { ...restTableInfo } = table
-
-      return restTableInfo
+      return table
     } catch (error) {
       handleException(error, this.logger)
     }

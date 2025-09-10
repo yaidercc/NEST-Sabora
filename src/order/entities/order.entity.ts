@@ -19,6 +19,13 @@ export class Order {
     user: User;
 
     @ManyToOne(
+        () => User,
+        { eager: true, nullable: true }
+    )
+    @Index()
+    customer?: User;
+
+    @ManyToOne(
         () => Table,
         table => table.order,
         { eager: true }
@@ -29,14 +36,19 @@ export class Order {
         () => OrderDetail,
         order_detail => order_detail.order,
         {
-            eager: true
+            eager: true,
+            orphanedRowAction: "delete"
         }
     )
-    order_detail: OrderDetail[];
+    order_details: OrderDetail[];
 
     @Column({ type: 'simple-enum', enum: OrderStatus, default: OrderStatus.PENDING })
     @Index()
     status: string;
+
+    @Column("boolean")
+    @Index()
+    is_customer_order: boolean;
 
     @Column("date")
     @Index()
