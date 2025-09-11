@@ -3,6 +3,7 @@ import { ConfigModule } from "@nestjs/config";
 import { JwtService } from "@nestjs/jwt";
 import { Test, TestingModule } from "@nestjs/testing";
 import { TypeOrmModule } from "@nestjs/typeorm";
+import { DataSource } from "typeorm";
 import { EnvConfiguration } from "src/config/env.config";
 import { JoiEnvValidation } from "src/config/joi.validation";
 import { EmployeeModule } from "src/employee/employee.module";
@@ -26,6 +27,10 @@ import { MenuItemModule } from "src/menu_item/menu_item.module";
 import { MenuItem } from "src/menu_item/entities/menu_item.entity";
 import { CommonModule } from "../common.module";
 import { UploadService } from "../services/upload.service";
+import { Order } from "src/order/entities/order.entity";
+import { OrderDetail } from "src/order/entities/order_detail.entity";
+import { OrderModule } from "src/order/order.module";
+import { OrderService } from "src/order/order.service";
 
 export class TestDatabaseManager {
     private static module: TestingModule;
@@ -48,20 +53,21 @@ export class TestDatabaseManager {
                         database: process.env.DB_NAME,
                         username: process.env.DB_USERNAME,
                         password: process.env.DB_PASSWORD,
-                        entities: [User, GeneralRole, Employee, EmployeeRole, Table, Schedule, Reservation, MenuItem],
+                        entities: [User, GeneralRole, Employee, EmployeeRole, Table, Schedule, Reservation, MenuItem, Order, OrderDetail],
                         synchronize: true,
                         dropSchema: true
                     }),
-                    TypeOrmModule.forFeature([User, GeneralRole, Employee, EmployeeRole, Table, Schedule, Reservation, MenuItem]),
+                    TypeOrmModule.forFeature([User, GeneralRole, Employee, EmployeeRole, Table, Schedule, Reservation, MenuItem, Order, OrderDetail]),
                     UserModule,
                     SeedModule,
                     EmployeeModule,
                     TableModule,
                     ReservationModule,
                     MenuItemModule,
-                    CommonModule
+                    CommonModule,
+                    OrderModule
                 ],
-                providers: [EmployeeService, JwtService, SeedService, TableService, ReservationService, MenuItemService]
+                providers: [EmployeeService, JwtService, SeedService, TableService, ReservationService, MenuItemService, OrderService]
             }).compile()
 
             this.app = this.module.createNestApplication();
@@ -78,7 +84,6 @@ export class TestDatabaseManager {
         }
     }
 
-
     static async initializeInt(): Promise<TestingModule> {
         this.module = await Test.createTestingModule({
             imports: [
@@ -90,27 +95,33 @@ export class TestDatabaseManager {
                 TypeOrmModule.forRoot({
                     type: "sqlite",
                     database: ":memory:",
-                    entities: [Employee, EmployeeRole, User, GeneralRole, Table, Schedule, Reservation, MenuItem],
+                    entities: [Employee, EmployeeRole, User, GeneralRole, Table, Schedule, Reservation, MenuItem, Order, OrderDetail],
                     synchronize: true,
-                    dropSchema: true
+                    dropSchema: true,
+                    extra: {
+                        pragma: "FOREIGN_KEYS=ON;"
+                    }
                 }),
-                TypeOrmModule.forFeature([Employee, EmployeeRole, User, GeneralRole, Table, Schedule, Reservation, MenuItem]),
+                TypeOrmModule.forFeature([Employee, EmployeeRole, User, GeneralRole, Table, Schedule, Reservation, MenuItem, Order, OrderDetail]),
                 EmployeeModule,
                 UserModule,
                 TableModule,
                 ReservationModule,
                 MenuItemModule,
-                CommonModule
+                CommonModule,
+                OrderModule
             ],
-            providers: [EmployeeService, JwtService, SeedService, TableService, ReservationService, MenuItemService]
-        }).compile()
+            providers: [EmployeeService, JwtService, SeedService, TableService, ReservationService, MenuItemService, OrderService]
+        }).compile();
+
+        const dataSource = this.module.get<DataSource>(DataSource);
+        await dataSource.query('PRAGMA foreign_keys = ON;');
 
         const seedService = this.module.get<SeedService>(SeedService);
         await seedService.executeSEED();
 
-        return this.module
+        return this.module;
     }
-
 
     static async cleanUp(): Promise<void> {
         if (this.app) {
@@ -118,5 +129,4 @@ export class TestDatabaseManager {
             this.initialized = false;
         }
     }
-
 }

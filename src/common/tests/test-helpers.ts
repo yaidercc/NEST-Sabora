@@ -17,6 +17,9 @@ import { Reservation } from "src/reservation/entities/reservation.entity";
 import { ReservationService } from "src/reservation/reservation.service";
 import { MenuItem } from "src/menu_item/entities/menu_item.entity";
 import { MenuItemService } from "src/menu_item/menu_item.service";
+import { OrderService } from "src/order/order.service";
+import { Order } from "src/order/entities/order.entity";
+import { OrderDetail } from "src/order/entities/order_detail.entity";
 
 export interface TestServices {
     tableService: TableService;
@@ -24,7 +27,9 @@ export interface TestServices {
     seedService: SeedService;
     employeesService: EmployeeService;
     reservationService: ReservationService;
-    menuItemService: MenuItemService
+    menuItemService: MenuItemService,
+    orderService: OrderService
+    
 }
 
 export interface TestRepositories {
@@ -34,7 +39,9 @@ export interface TestRepositories {
     employeeRoleRepository: Repository<EmployeeRole>
     generalRoleRepository: Repository<GeneralRole>
     reservationRepository: Repository<Reservation>
-    menuItemRepository: Repository<MenuItem>
+    menuItemRepository: Repository<MenuItem>,
+    orderRepository: Repository<Order>,
+    orderDetailsRepository:  Repository<OrderDetail>
 }
 
 export interface AdminLogin {
@@ -57,6 +64,8 @@ export class TestHelpers {
             generalRoleRepository: module.get<Repository<GeneralRole>>(getRepositoryToken(GeneralRole)),
             reservationRepository: module.get<Repository<Reservation>>(getRepositoryToken(Reservation)),
             menuItemRepository: module.get<Repository<MenuItem>>(getRepositoryToken(MenuItem)),
+            orderRepository: module.get<Repository<Order>>(getRepositoryToken(Order)),
+            orderDetailsRepository:  module.get<Repository<OrderDetail>>(getRepositoryToken(OrderDetail)),
         }
     }
     static getServices(module: TestingModule): TestServices {
@@ -67,6 +76,7 @@ export class TestHelpers {
             employeesService: module.get<EmployeeService>(EmployeeService),
             reservationService: module.get<ReservationService>(ReservationService),
             menuItemService: module.get<MenuItemService>(MenuItemService),
+            orderService: module.get<OrderService>(OrderService),
 
         }
     }

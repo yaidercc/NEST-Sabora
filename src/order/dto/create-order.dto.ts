@@ -1,5 +1,5 @@
 import { Transform, Type } from "class-transformer";
-import { IsArray, IsBoolean, IsInt, IsNumber, IsOptional, IsPositive, IsString, IsUUID, ValidateIf, ValidateNested } from "class-validator";
+import { IsArray, IsBoolean, IsInt, IsNumber, IsOptional, IsPositive, IsUUID, ValidateIf, ValidateNested } from "class-validator";
 
 
 export class CreateOrderDetailDto {

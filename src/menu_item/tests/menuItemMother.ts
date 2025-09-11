@@ -3,7 +3,7 @@ import { MenuItem } from "../entities/menu_item.entity";
 import { MenuItemType } from "../enum/menu_item_type";
 import { MenuItemService } from "../menu_item.service";
 import { mockFile } from "./mocks/menuItem.mock";
-
+import { v4 as uuid} from "uuid"
 export class MenuItemMother {
     static dto(menuItemInfo?: Partial<CreateMenuItemDto>): CreateMenuItemDto {
         return {
@@ -19,7 +19,7 @@ export class MenuItemMother {
         let menuItems: MenuItem[] = [];
 
         for (let i = 0; i < quantity; i++) {
-            const menuItemName = `${baseNames[Math.floor(Math.random() * baseNames.length)]}_${i}`
+            const menuItemName = `${baseNames[Math.floor(Math.random() * baseNames.length)]}_${uuid().split("-")[0]}`
             const menuItem = await menuItemService.create(MenuItemMother.dto({
                 name: menuItemName,
                 description: `Delicioso ${menuItemName}`

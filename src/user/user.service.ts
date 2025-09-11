@@ -17,6 +17,7 @@ import { NewPassword, RequestTempPasswordDto } from './dto/reset.password.dto';
 import { GeneralRoles } from 'src/common/enums/roles';
 import { isActive } from 'src/common/helpers/isActive';
 import { Employee } from 'src/employee/entities/employee.entity';
+import { findGeneralRole } from 'src/common/helpers/findRole';
 
 
 @Injectable()
@@ -38,7 +39,7 @@ export class UserService {
 
   async create(createUserDto: CreateUserDto) {
     const { password, role = "", ...restInfo } = createUserDto
-    const generalRole = await this.findGeneralRole(GeneralRoles.CLIENT)
+    const generalRole = await findGeneralRole(GeneralRoles.CLIENT, this.generalRoleRepository)
     try {
       const user = this.userRepository.create({
         ...restInfo,
@@ -237,19 +238,6 @@ export class UserService {
       .where({})
       .execute()
   }
-
-  private async findGeneralRole(term: string) {
-    let role: GeneralRole | null = null;
-    if (isUUID(term)) role = await this.generalRoleRepository.findOneBy({ id: term })
-    else role = await this.generalRoleRepository.findOneBy({ name: term })
-
-    if (!role) {
-      throw new BadRequestException("general role not found")
-    }
-
-    return role
-  }
-
 
   private generateTempPassword(length: number = 12) {
     let password: string = "";

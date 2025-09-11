@@ -58,7 +58,7 @@ export class MenuItemService {
     if (isUUID(term)) menuItem = await this.menuItemRepository.findOneBy({ id: term })
     else menuItem = await this.menuItemRepository.findOneBy({ name: term.trim().toLowerCase() })
 
-    if (!menuItem) throw new NotFoundException("Menu item not found")
+    if (!menuItem) throw new NotFoundException(`Menu item not found ${term}`)
 
     const is_active = await isActive(menuItem.id, this.menuItemRepository);
     if (!is_active) {

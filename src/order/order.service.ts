@@ -15,6 +15,7 @@ import { EmployeeRoles, GeneralRoles } from 'src/common/enums/roles';
 import { PaginationDto } from 'src/common/dtos/pagination.dto';
 import { UserService } from 'src/user/user.service';
 import { OrderStatus } from './enum/order_status';
+import { ChangeOrderStatus } from './dto/change-order-status.dto';
 
 @Injectable()
 export class OrderService {
@@ -31,15 +32,15 @@ export class OrderService {
   ) { }
 
   async create(createOrderDto: CreateOrderDto, user: User) {
-    const { table: tableId, order_details } = createOrderDto
+    const { table: tableId, order_details, customer: customerId, ...restOrderInfo } = createOrderDto
     const queryRunner = this.dataSource.createQueryRunner();
     try {
       await queryRunner.connect()
       queryRunner.startTransaction()
-
       const table = await this.tableService.findOne(tableId);
 
       const order = queryRunner.manager.create(Order, {
+        ...restOrderInfo,
         table,
         user,
         date: new Date().toISOString()
@@ -48,7 +49,11 @@ export class OrderService {
       if (!createOrderDto.is_customer_order && createOrderDto.customer) {
         const customer = await this.userService.findOne(createOrderDto.customer)
         order.customer = customer
+
+      } else {
+        order.customer = user
       }
+      order.is_customer_order = createOrderDto.is_customer_order;
 
       await queryRunner.manager.save(order)
       let subtotal = 0
@@ -70,7 +75,7 @@ export class OrderService {
 
       await queryRunner.commitTransaction()
 
-      return order
+      return this.findOne(order.id, user)
     } catch (error) {
       await queryRunner.rollbackTransaction()
       handleException(error, this.logger)
@@ -80,27 +85,43 @@ export class OrderService {
   }
 
   async findAll(paginationDto: PaginationDto, user: User) {
-    const { limit = 10, offset = 0 } = paginationDto
+    const { limit = 10, offset = 0 } = paginationDto;
 
     const isAdmin = user.role.name === GeneralRoles.ADMIN;
     const isManager = user.employee?.employee_role.name === EmployeeRoles.MANAGER;
-    let where: any = { is_active: true }
+
+    let whereConditions: any = { is_active: true };
 
     if (!isAdmin && !isManager) {
-      where = {
-        is_active: true,
-        $or: [
-          { customer: { id: user.id } },
-          { user: { id: user.id } }
-        ]
-      }
+
+      whereConditions = [
+        {
+          is_active: true,
+          customer: { id: user.id }
+        },
+        {
+          is_active: true,
+          user: { id: user.id }
+        }
+      ];
     }
 
     return await this.orderRepository.find({
+      where: whereConditions,
+      relations: [
+        'user',
+        'user.employee',
+        'user.employee.employee_role',
+        'user.role',
+        'customer',
+        'customer.employee',
+        'table',
+        'order_details',
+        'order_details.menu_item'
+      ],
       take: limit,
-      skip: offset,
-      where
-    })
+      skip: offset
+    });
   }
 
   async findOne(id: string, user: User) {
@@ -126,76 +147,136 @@ export class OrderService {
     return order
   }
 
-  async update(id: string, updateOrderDto: UpdateOrderDto, user: User) {
-    const { is_customer_order, customer: customerId, table: tableId, order_details, ...restInfo } = updateOrderDto
+async update(id: string, updateOrderDto: UpdateOrderDto, user: User) {
+  const { customer: customerId, table: tableId, order_details } = updateOrderDto;
+
+  try {
+    const order = await this.findOne(id, user);
+
+    if (!order.is_customer_order && customerId) {
+      order.customer = await this.userService.findOne(customerId);
+    }
+
+    if (tableId) {
+      const table = await this.tableService.findOne(tableId);
+      order.table =  table!
+    }
+
+    if (order_details) {
+      let subtotal = 0;
+
+      const newDetails: OrderDetail[] = [];
+      for (const dto of order_details) {
+        const menu_item = await this.menuItemService.findOne(dto.menu_item);
+        subtotal += menu_item.price * dto.quantity;
+
+        const detail = this.orderDetailsRepository.create({
+          order,
+          quantity: dto.quantity,
+          menu_item,
+        });
+
+        newDetails.push(detail);
+      }
+      await this.orderDetailsRepository.save(newDetails);
+      order.order_details = newDetails
+      order.subtotal = subtotal;
+    }
+
+    await this.orderRepository.save(order);
+
+    return this.findOne(id, user)
+  } catch (error) {
+    handleException(error, this.logger);
+  }
+}
+
+
+  async changeOrderStatus(id: string, changeOrderStatus: ChangeOrderStatus, user: User) {
+    const { status } = changeOrderStatus
     try {
-      const order = await this.orderRepository.preload({
-        id,
-        ...restInfo
-      })
+      const order = await this.findOne(id, user)
 
-      if (!order) throw new NotFoundException("Order not found")
+      this.validateStatusTransaction(order.status, status)
 
-      const is_active = await isActive(order.id, this.orderRepository);
-      if (!is_active) {
-        throw new BadRequestException("Order is not available")
-      }
+      this.validateStatusPermissions(user, status)
 
-      const isOwner = order.customer?.id === user.id || order.user.id === user.id;
-      const isAdmin = user.role.name === GeneralRoles.ADMIN;
-      const isManager = user.employee?.employee_role.name === EmployeeRoles.MANAGER;
+      await this.orderRepository.update(id, { status })
 
-      if (!isOwner && !isAdmin && !isManager) {
-        throw new ForbiddenException("You have no permission to perform this action");
-      }
-
-      if (!order.is_customer_order && customerId) {
-        const customer = await this.userService.findOne(customerId)
-        order.customer = customer
-      }
-
-      if (tableId) {
-        const table = await this.tableService.findOne(tableId);
-        order.table = table!
-      }
-
-
-      if (order_details) {
-        let subtotal = 0
-
-        await this.orderDetailsRepository.delete({ order: { id } });
-
-        for (let i = 0; i < order_details.length; i++) {
-          const menu_item = await this.menuItemService.findOne(order_details[i].menu_item)
-
-          subtotal += menu_item.price * order_details[i].quantity
-
-          const order_detail = await this.orderDetailsRepository.create({
-            order,
-            quantity: order_details[i].quantity,
-            menu_item
-          })
-
-          await this.orderDetailsRepository.save(order_detail)
-        }
-        order.subtotal = subtotal
-      }
-      await this.orderRepository.save(order)
       return this.findOne(id, user)
+
 
     } catch (error) {
       handleException(error, this.logger)
     }
   }
 
-  async cancelOrder(id: string, user: User) {
-    const order = await this.findOne(id, user)
-    
-    if (order.status !== OrderStatus.PENDING) {
-      throw new BadRequestException("You cannot cancel an while is beign prepared or is already delivered")
+  private validateStatusTransaction(currentStatus: string, newStatus: string) {
+    const allowedTransitions: Record<OrderStatus, OrderStatus[]> = {
+      [OrderStatus.PENDING]: [OrderStatus.CONFIRMED, OrderStatus.CANCELLED],
+      [OrderStatus.CONFIRMED]: [OrderStatus.PREPARING, OrderStatus.CANCELLED],
+      [OrderStatus.PREPARING]: [OrderStatus.READY, OrderStatus.CANCELLED],
+      [OrderStatus.READY]: [OrderStatus.DELIVERED],
+      [OrderStatus.DELIVERED]: [],
+      [OrderStatus.CANCELLED]: [],
+    };
+    if (!allowedTransitions[currentStatus]?.includes(newStatus)) {
+      throw new BadRequestException(`Cannot change status from ${currentStatus} to ${newStatus}`);
     }
-
-    await this.orderRepository.update(id, { status: OrderStatus.CANCELLED })
-    await this.orderDetailsRepository.update({ order }, { status: OrderStatus.CANCELLED })
   }
+
+  private validateStatusPermissions(user: User, newStatus: string) {
+    const userRole = user.role.name;
+    const employeeRole = user.employee?.employee_role?.name;
+
+    const isAdmin = userRole === GeneralRoles.ADMIN;
+    const isManager = employeeRole === EmployeeRoles.MANAGER;
+    const isCooker = employeeRole === EmployeeRoles.COOKER;
+    const isWaitress = employeeRole === EmployeeRoles.WAITRESS;
+
+    if (isAdmin || isManager) return;
+
+    switch (newStatus) {
+      case OrderStatus.CONFIRMED:
+        if (!isCooker && !isWaitress) {
+          throw new ForbiddenException('Only cooks and waitresses can confirm orders');
+        }
+        break;
+
+      case OrderStatus.PREPARING:
+        if (!isCooker) {
+          throw new ForbiddenException('Only cooks can mark orders as preparing');
+        }
+        break;
+
+      case OrderStatus.READY:
+        if (!isCooker) {
+          throw new ForbiddenException('Only cooks can mark orders as ready');
+        }
+        break;
+
+      case OrderStatus.DELIVERED:
+        if (!isWaitress) {
+          throw new ForbiddenException('Only waitresses can mark orders as delivered');
+        }
+        break;
+
+      case OrderStatus.CANCELLED:
+        break;
+
+      default:
+        throw new BadRequestException(`Invalid status transition to ${newStatus}`);
+    }
+  }
+
+  // async cancelOrder(id: string, user: User) {
+  //   const order = await this.findOne(id, user)
+
+  //   if (order.status !== OrderStatus.PENDING) {
+  //     throw new BadRequestException("You cannot cancel an while is beign prepared or is already delivered")
+  //   }
+
+  //   await this.orderRepository.update(id, { status: OrderStatus.CANCELLED })
+  //   await this.orderDetailsRepository.update({ order }, { status: OrderStatus.CANCELLED })
+  // }
 }

@@ -6,6 +6,7 @@ import { Auth } from 'src/user/decorators/auth.decorator';
 import { EmployeeRoles, GeneralRoles } from 'src/common/enums/roles';
 import { GetUser } from 'src/user/decorators/get-user.decorator';
 import { PaginationDto } from 'src/common/dtos/pagination.dto';
+import { ChangeOrderStatus } from './dto/change-order-status.dto';
 @Controller('order')
 export class OrderController {
   constructor(private readonly orderService: OrderService) { }
@@ -30,13 +31,13 @@ export class OrderController {
 
   @Patch(':id')
   @Auth([GeneralRoles.ADMIN, GeneralRoles.EMPLOYEE], {}, [EmployeeRoles.MANAGER, EmployeeRoles.COOKER, EmployeeRoles.WAITRESS])
-  update(@Param('id') id: string, @Body() updateOrderDto: UpdateOrderDto,  @GetUser() user) {
+  changeOrderStatus(@Param('id') id: string, @Body() changeOrderStatus: ChangeOrderStatus,  @GetUser() user) {
+    return this.orderService.changeOrderStatus(id, changeOrderStatus, user);
+  }
+  @Patch(':id')
+  @Auth([], {}, [EmployeeRoles.MANAGER, EmployeeRoles.COOKER, EmployeeRoles.WAITRESS])
+  update(@Param('id') id: string, @Body() updateOrderDto: UpdateOrderDto, @GetUser() user) {
     return this.orderService.update(id, updateOrderDto, user);
   }
 
-  @Delete(':id')
-  @Auth([GeneralRoles.ADMIN, GeneralRoles.EMPLOYEE, GeneralRoles.CLIENT], {}, [EmployeeRoles.MANAGER])
-  cancelOrder(@Param('id') id: string,  @GetUser() user) {
-    return this.orderService.cancelOrder(id, user);
-  }
 }

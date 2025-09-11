@@ -12,6 +12,7 @@ import { PaginationDto } from 'src/common/dtos/pagination.dto';
 import { isActive } from 'src/common/helpers/isActive';
 import { GeneralRole } from 'src/user/entities/general_role.entity';
 import { GeneralRoles } from 'src/common/enums/roles';
+import { findGeneralRole } from 'src/common/helpers/findRole';
 
 @Injectable()
 export class EmployeeService {
@@ -44,6 +45,8 @@ export class EmployeeService {
       const employee_role = await queryRunner.manager.findOneBy(EmployeeRole, { id: createEmployeeDto.employee_role_id })
       if (!employee_role) throw new NotFoundException(`Employee role not found`)
 
+      const role = await findGeneralRole(GeneralRoles.EMPLOYEE, this.generalRoleRepository)
+      await this.userRepository.update(user.id, { role })
 
       const employee = queryRunner.manager.create(Employee, {
         ...createEmployeeDto,
@@ -158,7 +161,7 @@ export class EmployeeService {
 
       const clientRole = await this.generalRoleRepository.findOneBy({ name: GeneralRoles.CLIENT })
       await this.userRepository.update(id, { role: clientRole! })
-      
+
       return await this.employeeRepository.update(id, { is_active: false })
 
     } catch (error) {

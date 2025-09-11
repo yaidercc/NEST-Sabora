@@ -259,10 +259,22 @@ describe("Unit OrderServices tests", () => {
         );
     });
 
-    it('should cancell a table', async () => {
+    it('should change an order status', async () => {
 
         const table = { id: tableId, ...TableMother.dto() }
-        const order = { id: orderId, ...OrderMother.dto(), table, user, status: OrderStatus.PENDING }
+        const order = {
+            id: orderId,
+            ...OrderMother.dto(),
+            table,
+            user: {
+                ...user, role: {
+                    id: uuid(),
+                    name: GeneralRoles.ADMIN
+                },
+            },
+            status: OrderStatus.PENDING
+        }
+
         const mockQueryBuilder = {
             select: jest.fn().mockReturnThis(),
             where: jest.fn().mockReturnThis(),
@@ -270,10 +282,10 @@ describe("Unit OrderServices tests", () => {
         }
         mockOrder.findOneBy.mockReturnValue(order)
         mockOrder.createQueryBuilder.mockReturnValue(mockQueryBuilder)
-        const response = await orderService.cancelOrder(orderId, user);
+        const response = await orderService.changeOrderStatus(orderId, { status: OrderStatus.CONFIRMED }, order.user as User);
 
         expect(mockOrder.createQueryBuilder).toHaveBeenCalled()
-        expect(mockOrder.update).toHaveBeenCalledWith(orderId, { status: OrderStatus.CANCELLED })
+        expect(mockOrder.update).toHaveBeenCalledWith(orderId, { status: OrderStatus.CONFIRMED })
     });
 
 

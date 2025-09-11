@@ -37,7 +37,7 @@ export class Order {
         order_detail => order_detail.order,
         {
             eager: true,
-            orphanedRowAction: "delete"
+            cascade: true
         }
     )
     order_details: OrderDetail[];
