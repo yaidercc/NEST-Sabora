@@ -12,6 +12,8 @@ import { Table } from 'src/table/entities/table.entity';
 import { Schedule } from 'src/reservation/entities/schedule.entity';
 import { Reservation } from 'src/reservation/entities/reservation.entity';
 import { MenuItem } from 'src/menu_item/entities/menu_item.entity';
+import { Order } from 'src/order/entities/order.entity';
+import { OrderDetail } from 'src/order/entities/order_detail.entity';
 
 @Injectable()
 export class SeedService {
@@ -34,6 +36,10 @@ export class SeedService {
     private readonly reservationRepository: Repository<Reservation>,
     @InjectRepository(MenuItem)
     private readonly menuItemRepository: Repository<MenuItem>,
+    @InjectRepository(Order)
+    private readonly orderRepository: Repository<Order>,
+    @InjectRepository(OrderDetail)
+    private readonly orderDetailRepository: Repository<OrderDetail>,
   ) { }
 
   async executeSEED() {
@@ -50,6 +56,8 @@ export class SeedService {
 
   private async deleteTables() {
     await this.reservationRepository.createQueryBuilder().delete().where({}).execute()
+    await this.orderDetailRepository.createQueryBuilder().delete().where({}).execute()
+    await this.orderRepository.createQueryBuilder().delete().where({}).execute()
     await this.employeeService.removeAllEmployees()
     await this.userService.removeAllUsers()
     await this.generalRoleRepository.createQueryBuilder().delete().where({}).execute()
