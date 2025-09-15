@@ -1,0 +1,60 @@
+import { TestingModule } from "@nestjs/testing";
+import { EmployeeService } from "src/employee/employee.service";
+import { Employee } from "src/employee/entities/employee.entity";
+import { EmployeeRole } from "src/employee/entities/employee_role.entity";
+import { SeedService } from "src/seed/seed.service";
+import { User } from "src/user/entities/user.entity";
+import { UserService } from "src/user/user.service";
+import { Repository } from "typeorm";
+import { INestApplication } from "@nestjs/common";
+import { GeneralRole } from "src/user/entities/general_role.entity";
+import { TableService } from "src/table/table.service";
+import { Table } from "src/table/entities/table.entity";
+import { Reservation } from "src/reservation/entities/reservation.entity";
+import { ReservationService } from "src/reservation/reservation.service";
+import { MenuItem } from "src/menu_item/entities/menu_item.entity";
+import { MenuItemService } from "src/menu_item/menu_item.service";
+import { OrderService } from "src/order/order.service";
+import { Order } from "src/order/entities/order.entity";
+import { OrderDetail } from "src/order/entities/order_detail.entity";
+import { Invoice } from "src/invoice/entities/invoice.entity";
+import { InvoiceService } from "src/invoice/invoice.service";
+export interface TestServices {
+    tableService: TableService;
+    userService: UserService;
+    seedService: SeedService;
+    employeesService: EmployeeService;
+    reservationService: ReservationService;
+    menuItemService: MenuItemService;
+    orderService: OrderService;
+    invoiceService: InvoiceService;
+}
+export interface TestRepositories {
+    tableRepository: Repository<Table>;
+    userRepository: Repository<User>;
+    employeeRepository: Repository<Employee>;
+    employeeRoleRepository: Repository<EmployeeRole>;
+    generalRoleRepository: Repository<GeneralRole>;
+    reservationRepository: Repository<Reservation>;
+    menuItemRepository: Repository<MenuItem>;
+    orderRepository: Repository<Order>;
+    orderDetailsRepository: Repository<OrderDetail>;
+    invoiceRepository: Repository<Invoice>;
+}
+export interface AdminLogin {
+    user: {
+        id: string;
+        full_name: string;
+        email: string;
+        phone: string;
+        is_active: boolean;
+        role: GeneralRole;
+    };
+    token: string;
+}
+export declare class TestHelpers {
+    static getRepositories(module: TestingModule): TestRepositories;
+    static getServices(module: TestingModule): TestServices;
+    static loginAsAdmin(app: INestApplication): Promise<AdminLogin | undefined>;
+    static setupTestData(seedService: SeedService): Promise<void>;
+}
