@@ -45,7 +45,7 @@ export class OrderMother {
 
         }
     }
-    // TODO: REFACT
+    
     async createManyOrders(quantity: number): Promise<Order[]> {
         let orders: Order[] = [];
         const tables = await TableMother.createManyTables(this.tableService, quantity);

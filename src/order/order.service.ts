@@ -70,7 +70,6 @@ export class OrderService {
 
         await queryRunner.manager.save(order_detail)
       }
-
       await queryRunner.manager.update(Order, order.id, { subtotal })
 
       await queryRunner.commitTransaction()
@@ -137,9 +136,10 @@ export class OrderService {
 
     const isOwner = order.customer?.id === user.id || order.user.id === user.id;
     const isAdmin = user.role.name === GeneralRoles.ADMIN;
-    const isManager = user.employee?.employee_role.name === EmployeeRoles.MANAGER;
+    const isManager = user.employee?.employee_role?.name === EmployeeRoles.MANAGER;
+    const isCashier = user.employee?.employee_role?.name === EmployeeRoles.CASHIER;
 
-    if (!isOwner && !isAdmin && !isManager) {
+    if (!isOwner && !isAdmin && !isManager && !isCashier) {
       throw new ForbiddenException("You have no permission to perform this action");
     }
 
@@ -269,14 +269,4 @@ async update(id: string, updateOrderDto: UpdateOrderDto, user: User) {
     }
   }
 
-  // async cancelOrder(id: string, user: User) {
-  //   const order = await this.findOne(id, user)
-
-  //   if (order.status !== OrderStatus.PENDING) {
-  //     throw new BadRequestException("You cannot cancel an while is beign prepared or is already delivered")
-  //   }
-
-  //   await this.orderRepository.update(id, { status: OrderStatus.CANCELLED })
-  //   await this.orderDetailsRepository.update({ order }, { status: OrderStatus.CANCELLED })
-  // }
 }

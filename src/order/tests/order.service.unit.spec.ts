@@ -148,6 +148,8 @@ describe("Unit OrderServices tests", () => {
         mockManager.create.mockReturnValue(order)
         mockManager.save.mockReturnValue(order)
         mockManager.update.mockReturnValue(order)
+        mockOrder.findOneBy.mockResolvedValue(order)
+        mockOrder.createQueryBuilder.mockReturnValue(mockQueryBuilder)
 
         const response = await orderService.create(orderDTO, user);
 
@@ -204,11 +206,7 @@ describe("Unit OrderServices tests", () => {
         const dtoUpdate = {
             order_details: [
                 order.order_details[0],
-                {
-                    ...order.order_details[1],
-                    quantity: 10
-
-                }
+                { ...order.order_details[1], quantity: 10 }
             ]
         }
 
@@ -221,10 +219,12 @@ describe("Unit OrderServices tests", () => {
         }
 
         mockOrder.createQueryBuilder.mockReturnValue(mockQueryBuilder)
-        mockOrder.preload.mockReturnValue(updatedOrder)
         mockOrder.findOneBy.mockReturnValue(updatedOrder)
 
-        const menuItems = order.order_details.map((item, i) => ({
+        mockOrderDetail.create.mockImplementation((dto) => dto)
+        mockOrderDetail.save.mockImplementation((details) => details)
+
+        const menuItems = order.order_details.map((item) => ({
             id: item.menu_item,
             ...MenuItemMother.dto(),
             ...item
@@ -237,27 +237,19 @@ describe("Unit OrderServices tests", () => {
 
         const response = await orderService.update(tableId, dtoUpdate, user);
 
-
         expect(mockOrder.createQueryBuilder).toHaveBeenCalled()
-        expect(mockOrder.preload).toHaveBeenCalled()
         expect(mockOrder.findOneBy).toHaveBeenCalled()
+        expect(mockOrderDetail.create).toHaveBeenCalled()
+        expect(mockOrderDetail.save).toHaveBeenCalled()
         expect([
-            {
-                quantity: response?.order_details[0].quantity
-            },
-            {
-                quantity: response?.order_details[1].quantity
-            }
+            { quantity: response?.order_details[0].quantity },
+            { quantity: response?.order_details[1].quantity }
         ]).toEqual([
-            {
-                quantity: updatedOrder.order_details[0].quantity
-            },
-            {
-                quantity: updatedOrder.order_details[1].quantity
-            }
-        ]
-        );
+            { quantity: updatedOrder.order_details[0].quantity },
+            { quantity: updatedOrder.order_details[1].quantity }
+        ]);
     });
+
 
     it('should change an order status', async () => {
 

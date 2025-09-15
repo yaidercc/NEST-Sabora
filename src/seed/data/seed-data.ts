@@ -202,7 +202,7 @@ export const initialData: InitialData = {
             id: uuid(),
             name: "Pescado frito",
             description:"Trucha frita con patacones, ensalada, sopa y arroz de coco",
-            price:  25000,
+            price:  25.000,
             image: "https://res.cloudinary.com/dwbldpfvx/image/upload/v1756779868/download_qniu9a.jpg",
             menu_item_type: MenuItemType.MAIN_COURSE
         },
@@ -210,7 +210,7 @@ export const initialData: InitialData = {
             id: uuid(),
             name: "Platano maduro con queso",
             description:"Platano maduro asado con queso costeño y salsa de guayaba",
-            price:  10000,
+            price:  10.000,
             image: "https://res.cloudinary.com/dwbldpfvx/image/upload/v1756780023/YDL4S37FUZCFLD2AVYYG75FOV4_cqgecq.avif",
             menu_item_type: MenuItemType.DESSERT
         },
@@ -218,7 +218,7 @@ export const initialData: InitialData = {
             id: uuid(),
             name: "Jugos en leche",
             description:"Jugo de mora, mango, piña, banano y guayaba",
-            price:  4500,
+            price:  4.500,
             image: "https://res.cloudinary.com/dwbldpfvx/image/upload/v1756780138/jugos-naturales-1-1_ps3a5j.jpg",
             menu_item_type: MenuItemType.BEVERAGE
         },
@@ -226,7 +226,7 @@ export const initialData: InitialData = {
             id: uuid(),
             name: "Frijoles con chicharron",
             description:"Deliciosos frijoles con trocitos de chicharron carnudo",
-            price:  4500,
+            price:  4.500,
             image: "https://res.cloudinary.com/dwbldpfvx/image/upload/v1756780162/260-image_web.jpg_bgcvak.webp",
             menu_item_type: MenuItemType.BEVERAGE
         },

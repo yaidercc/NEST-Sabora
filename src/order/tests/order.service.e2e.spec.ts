@@ -63,7 +63,9 @@ describe("Integrations test TablesService", () => {
                 }
             ]
         })
-        const subtotal = (menu_items[0].price * orderDTO.order_details[0].quantity) + (menu_items[1].price * orderDTO.order_details[1].quantity)
+        
+       
+        const subtotal = ( menu_items[0].price * orderDTO.order_details[0].quantity) + (menu_items[1].price * orderDTO.order_details[1].quantity)
 
         const response = await request(app.getHttpServer())
             .post('/order')
@@ -91,8 +93,9 @@ describe("Integrations test TablesService", () => {
                 quantity: orderDTO?.order_details[1].quantity
             }
         ])
+
         expect(response.body?.table.id).toBe(orderDTO.table)
-        expect(response.body?.subtotal).toBe(subtotal)
+        expect(response.body?.subtotal).toBe(subtotal.toFixed(2))
         expect(response.body?.customer?.id).toBe(adminLogin?.user.id)
     })
 

@@ -20,6 +20,8 @@ import { MenuItemService } from "src/menu_item/menu_item.service";
 import { OrderService } from "src/order/order.service";
 import { Order } from "src/order/entities/order.entity";
 import { OrderDetail } from "src/order/entities/order_detail.entity";
+import { Invoice } from "src/invoice/entities/invoice.entity";
+import { InvoiceService } from "src/invoice/invoice.service";
 
 export interface TestServices {
     tableService: TableService;
@@ -28,7 +30,8 @@ export interface TestServices {
     employeesService: EmployeeService;
     reservationService: ReservationService;
     menuItemService: MenuItemService,
-    orderService: OrderService
+    orderService: OrderService,
+    invoiceService: InvoiceService
     
 }
 
@@ -41,7 +44,9 @@ export interface TestRepositories {
     reservationRepository: Repository<Reservation>
     menuItemRepository: Repository<MenuItem>,
     orderRepository: Repository<Order>,
-    orderDetailsRepository:  Repository<OrderDetail>
+    orderDetailsRepository:  Repository<OrderDetail>,
+    invoiceRepository:  Repository<Invoice>,
+
 }
 
 export interface AdminLogin {
@@ -66,6 +71,7 @@ export class TestHelpers {
             menuItemRepository: module.get<Repository<MenuItem>>(getRepositoryToken(MenuItem)),
             orderRepository: module.get<Repository<Order>>(getRepositoryToken(Order)),
             orderDetailsRepository:  module.get<Repository<OrderDetail>>(getRepositoryToken(OrderDetail)),
+            invoiceRepository:  module.get<Repository<Invoice>>(getRepositoryToken(Invoice)),
         }
     }
     static getServices(module: TestingModule): TestServices {
@@ -77,6 +83,7 @@ export class TestHelpers {
             reservationService: module.get<ReservationService>(ReservationService),
             menuItemService: module.get<MenuItemService>(MenuItemService),
             orderService: module.get<OrderService>(OrderService),
+            invoiceService: module.get<InvoiceService>(InvoiceService),
 
         }
     }

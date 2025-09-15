@@ -11,6 +11,7 @@ import { TableModule } from './table/table.module';
 import { ReservationModule } from './reservation/reservation.module';
 import { MenuItemModule } from './menu_item/menu_item.module';
 import { OrderModule } from './order/order.module';
+import { InvoiceModule } from './invoice/invoice.module';
 
 @Module({
   imports: [
@@ -49,7 +50,8 @@ import { OrderModule } from './order/order.module';
     TableModule,
     ReservationModule,
     MenuItemModule,
-    OrderModule
+    OrderModule,
+    InvoiceModule
   ],
   controllers: [],
   providers: [],

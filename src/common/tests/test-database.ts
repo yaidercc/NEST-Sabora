@@ -31,6 +31,9 @@ import { Order } from "src/order/entities/order.entity";
 import { OrderDetail } from "src/order/entities/order_detail.entity";
 import { OrderModule } from "src/order/order.module";
 import { OrderService } from "src/order/order.service";
+import { Invoice } from "src/invoice/entities/invoice.entity";
+import { InvoiceModule } from "src/invoice/invoice.module";
+import { InvoiceService } from "src/invoice/invoice.service";
 
 export class TestDatabaseManager {
     private static module: TestingModule;
@@ -53,11 +56,11 @@ export class TestDatabaseManager {
                         database: process.env.DB_NAME,
                         username: process.env.DB_USERNAME,
                         password: process.env.DB_PASSWORD,
-                        entities: [User, GeneralRole, Employee, EmployeeRole, Table, Schedule, Reservation, MenuItem, Order, OrderDetail],
+                        entities: [User, GeneralRole, Employee, EmployeeRole, Table, Schedule, Reservation, MenuItem, Order, OrderDetail, Invoice],
                         synchronize: true,
                         dropSchema: true
                     }),
-                    TypeOrmModule.forFeature([User, GeneralRole, Employee, EmployeeRole, Table, Schedule, Reservation, MenuItem, Order, OrderDetail]),
+                    // TypeOrmModule.forFeature([User, GeneralRole, Employee, EmployeeRole, Table, Schedule, Reservation, MenuItem, Order, OrderDetail, Invoice]),
                     UserModule,
                     SeedModule,
                     EmployeeModule,
@@ -65,9 +68,10 @@ export class TestDatabaseManager {
                     ReservationModule,
                     MenuItemModule,
                     CommonModule,
-                    OrderModule
+                    OrderModule,
+                    InvoiceModule
                 ],
-                providers: [EmployeeService, JwtService, SeedService, TableService, ReservationService, MenuItemService, OrderService]
+                providers: [EmployeeService, JwtService, SeedService, TableService, ReservationService, MenuItemService, OrderService,InvoiceService]
             }).compile()
 
             this.app = this.module.createNestApplication();
@@ -95,23 +99,24 @@ export class TestDatabaseManager {
                 TypeOrmModule.forRoot({
                     type: "sqlite",
                     database: ":memory:",
-                    entities: [Employee, EmployeeRole, User, GeneralRole, Table, Schedule, Reservation, MenuItem, Order, OrderDetail],
+                    entities: [Employee, EmployeeRole, User, GeneralRole, Table, Schedule, Reservation, MenuItem, Order, OrderDetail,Invoice],
                     synchronize: true,
                     dropSchema: true,
                     extra: {
                         pragma: "FOREIGN_KEYS=ON;"
                     }
                 }),
-                TypeOrmModule.forFeature([Employee, EmployeeRole, User, GeneralRole, Table, Schedule, Reservation, MenuItem, Order, OrderDetail]),
+                TypeOrmModule.forFeature([Employee, EmployeeRole, User, GeneralRole, Table, Schedule, Reservation, MenuItem, Order, OrderDetail,Invoice]),
                 EmployeeModule,
                 UserModule,
                 TableModule,
                 ReservationModule,
                 MenuItemModule,
                 CommonModule,
-                OrderModule
+                OrderModule,
+                InvoiceModule
             ],
-            providers: [EmployeeService, JwtService, SeedService, TableService, ReservationService, MenuItemService, OrderService]
+            providers: [EmployeeService, JwtService, SeedService, TableService, ReservationService, MenuItemService, OrderService, InvoiceService]
         }).compile();
 
         const dataSource = this.module.get<DataSource>(DataSource);

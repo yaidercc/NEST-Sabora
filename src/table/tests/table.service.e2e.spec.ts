@@ -92,7 +92,7 @@ describe("Integrations test TablesService", () => {
 
     it("PATCH /table", async () => {
         const [table] = await TableMother.createManyTables(services.tableService, 1)
-        const updateDTO = { capacity: "12" }
+        const updateDTO = { capacity: 12 }
         const response = await request(app.getHttpServer())
             .patch(`/table/${table.id}`)
             .set('Authorization', `Bearer ${adminLogin?.token}`)

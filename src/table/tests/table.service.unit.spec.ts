@@ -98,7 +98,7 @@ describe("Unit UserServices tests", () => {
     it('should update a table', async () => {
         const tableDTO = { id: tableId, ...TableMother.dto() }
         const dtoUpdate = { capacity: 5 }
-        const updatedUser = { ...tableDTO, ...dtoUpdate }
+        const updatedTable = { ...tableDTO, ...dtoUpdate }
 
         const mockQueryBuilder = {
             select: jest.fn().mockReturnThis(),
@@ -107,13 +107,14 @@ describe("Unit UserServices tests", () => {
         }
 
         mockTable.createQueryBuilder.mockReturnValue(mockQueryBuilder)
-        mockTable.preload.mockReturnValue(updatedUser)
+        mockTable.preload.mockReturnValue(updatedTable)
+        mockTable.findOneBy.mockReturnValue(updatedTable)
 
         const response = await tableService.update(tableId, dtoUpdate);
 
-        expect(mockTable.createQueryBuilder).toHaveBeenCalled()
+        expect(mockTable.createQueryBuilder).toHaveBeenCalled() 
         expect(mockTable.preload).toHaveBeenCalled()
-        expect(response).toEqual(updatedUser);
+        expect(response).toEqual(updatedTable);
     });
 
     it('should remove a table', async () => {

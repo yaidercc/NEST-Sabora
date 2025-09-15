@@ -12,6 +12,6 @@ import { MenuItemModule } from 'src/menu_item/menu_item.module';
   imports: [TypeOrmModule.forFeature([Order, OrderDetail]), UserModule,TableModule,MenuItemModule],
   controllers: [OrderController],
   providers: [OrderService],
-  exports: [TypeOrmModule]
+  exports: [TypeOrmModule, OrderService]
 })
 export class OrderModule { }

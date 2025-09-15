@@ -7,7 +7,7 @@ import { AdminLogin, TestHelpers, TestRepositories, TestServices } from "src/com
 import { TestDatabaseManager } from "src/common/tests/test-database";
 import { MenuItemMother } from "./menuItemMother";
 import { mockFile } from "./mocks/menuItem.mock";
-// TODO: implement test to upload an image
+
 describe("Integrations test MenuItemService", () => {
     let module: TestingModule;
     let app: INestApplication
@@ -74,7 +74,7 @@ describe("Integrations test MenuItemService", () => {
             id: menuItem.id,
             name: menuItem.name,
             description: menuItem.description,
-            price: menuItem.price,
+            price: menuItem.price.toFixed(2),
             menu_item_type: menuItem.menu_item_type,
             image: menuItem.image
         })
@@ -103,7 +103,7 @@ describe("Integrations test MenuItemService", () => {
             .set('Authorization', `Bearer ${adminLogin?.token}`)
             .send(dtoUpdate)
         expect(response.status).toBe(200)
-        expect(response.body.price).toBe(dtoUpdate.price)
+        expect(response.body.price).toBe(dtoUpdate.price.toFixed(2))
 
     });
 

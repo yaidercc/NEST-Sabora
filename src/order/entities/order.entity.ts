@@ -91,9 +91,9 @@ export class Order {
 
     @ApiProperty({
         description: "Order subtotal",
-        example: 120000
+        example: 12.0000
     })
-    @Column({ type: "int", default: 0 })
+    @Column({ type: 'decimal', precision: 10, scale: 2, default: 0 })
     subtotal: number;
 
     @Column("boolean", { default: true, select: false })

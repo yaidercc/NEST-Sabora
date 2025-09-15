@@ -1,4 +1,4 @@
-import { IsIn, IsInt, IsNumber, IsPositive, IsString, ValidateIf } from "class-validator";
+import { IsIn, IsNumber, IsPositive, IsString, ValidateIf } from "class-validator";
 import { MenuItemType } from "../enum/menu_item_type";
 import { Transform } from "class-transformer";
 import { ApiProperty } from "@nestjs/swagger";
@@ -27,9 +27,8 @@ export class CreateMenuItemDto {
     })
     @ValidateIf((value) => value !== null && value !== undefined)
     @Transform(({ value }) => parseFloat(value))
-    @IsNumber()
+    @IsNumber({ allowNaN: false, allowInfinity: false })
     @IsPositive()
-    @IsInt()
     price: number;
 
     @ApiProperty({

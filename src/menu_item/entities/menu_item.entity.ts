@@ -28,9 +28,9 @@ export class MenuItem {
 
     @ApiProperty({
         description: "Menu item price",
-        example: 25000
+        example: 25.000
     })
-    @Column({ type: "int" })
+    @Column({ type: 'decimal', precision: 10, scale: 2 })
     @Index()
     price: number;
 
