@@ -5,7 +5,11 @@
   "author": "",
   "private": true,
   "license": "UNLICENSED",
+  "engines": {
+    "node": "22.x"
+  },
   "scripts": {
+    "prebuild": "rimraf dist",
     "build": "nest build",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "start": "node dist/main",
@@ -24,7 +28,6 @@
     "docker:dev": "docker compose down -v && docker compose --env-file .env up -d",
     "docker:test": "docker compose down -v && docker compose --env-file .env.test up -d"
   },
-
   "dependencies": {
     "@nestjs-modules/mailer": "^2.0.2",
     "@nestjs/common": "^11.0.1",
@@ -77,6 +80,7 @@
     "globals": "^16.0.0",
     "jest": "^30.0.5",
     "prettier": "^3.4.2",
+    "rimraf": "^6.0.1",
     "source-map-support": "^0.5.21",
     "sqlite": "^5.1.1",
     "sqlite3": "^5.1.7",
