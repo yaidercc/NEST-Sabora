@@ -15,7 +15,7 @@ export class CreateTableDto {
 
     @ApiProperty({
         description: "Table name",
-        example: "Table 201"
+        example: "201"
     })
     @ValidateIf((value) => value !== null && value !== undefined)
     @IsString()
