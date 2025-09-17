@@ -24,7 +24,7 @@ async function bootstrap() {
 
   const config = new DocumentBuilder()
     .setTitle('Sabora API')
-    .setDescription('All the sabora endpoints')
+    .setDescription('A comprehensive system for managing the core operations of a restaurant.')
     .setVersion('1.0')
     .addBearerAuth({
       type: "http",
