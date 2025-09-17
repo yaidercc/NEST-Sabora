@@ -123,7 +123,7 @@ __decorate([
 ], InvoiceController.prototype, "findAll", null);
 __decorate([
     (0, swagger_1.ApiBearerAuth)('access-token'),
-    (0, swagger_1.ApiOperation)({ summary: "Find one invoice by a term of search" }),
+    (0, swagger_1.ApiOperation)({ summary: "Find one invoice by a search term" }),
     (0, swagger_1.ApiResponse)({ status: 200, description: "Invoice", type: invoice_entity_1.Invoice }),
     (0, swagger_1.ApiResponse)({ status: 400, description: "Invoice is not available" }),
     (0, swagger_1.ApiResponse)({ status: 401, description: "Unauthorized" }),

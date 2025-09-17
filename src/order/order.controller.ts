@@ -34,7 +34,7 @@ export class OrderController {
     return this.orderService.findAll(pagination, user);
   }
 
-  @ApiOperation({ summary: "Find one order by a term of search" })
+  @ApiOperation({ summary: "Find one order by a search term" })
   @ApiResponse({ status: 200, description: "Order", type: Order })
   @ApiResponse({ status: 400, description: "Order is not available" })
   @ApiResponse({ status: 401, description: "Unauthorized" })

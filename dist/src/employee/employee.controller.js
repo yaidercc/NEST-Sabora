@@ -68,7 +68,7 @@ __decorate([
     __metadata("design:returntype", void 0)
 ], EmployeeController.prototype, "findAll", null);
 __decorate([
-    (0, swagger_1.ApiOperation)({ summary: "Find one employee by a term of search" }),
+    (0, swagger_1.ApiOperation)({ summary: "Find one employee by a search term" }),
     (0, swagger_1.ApiResponse)({ status: 200, description: "Employee", type: employee_entity_1.Employee }),
     (0, swagger_1.ApiResponse)({ status: 400, description: "Employee is not available" }),
     (0, swagger_1.ApiResponse)({ status: 401, description: "Unauthorized" }),

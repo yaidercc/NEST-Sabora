@@ -105,7 +105,7 @@ export class InvoiceController {
 
 
   @ApiBearerAuth('access-token')
-  @ApiOperation({ summary: "Find one invoice by a term of search" })
+  @ApiOperation({ summary: "Find one invoice by a search term" })
   @ApiResponse({ status: 200, description: "Invoice", type: Invoice })
   @ApiResponse({ status: 400, description: "Invoice is not available" })
   @ApiResponse({ status: 401, description: "Unauthorized" })

@@ -72,7 +72,7 @@ __decorate([
     __metadata("design:returntype", void 0)
 ], OrderController.prototype, "findAll", null);
 __decorate([
-    (0, swagger_1.ApiOperation)({ summary: "Find one order by a term of search" }),
+    (0, swagger_1.ApiOperation)({ summary: "Find one order by a search term" }),
     (0, swagger_1.ApiResponse)({ status: 200, description: "Order", type: order_entity_1.Order }),
     (0, swagger_1.ApiResponse)({ status: 400, description: "Order is not available" }),
     (0, swagger_1.ApiResponse)({ status: 401, description: "Unauthorized" }),

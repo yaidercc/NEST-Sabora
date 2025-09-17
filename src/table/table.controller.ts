@@ -42,7 +42,7 @@ export class TableController {
   }
 
 
-  @ApiOperation({ summary: "Find one table by a term of search" })
+  @ApiOperation({ summary: "Find one table by a search term" })
   @ApiResponse({ status: 200, description: "Table", type: Table })
   @ApiResponse({ status: 400, description: "Table is not available" })
   @ApiResponse({ status: 404, description: "Table not found" })

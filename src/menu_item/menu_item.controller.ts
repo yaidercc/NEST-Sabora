@@ -54,7 +54,7 @@ export class MenuItemController {
     return this.menuItemService.findAll(paginationDto);
   }
 
-  @ApiOperation({ summary: "Find one menu item by a term of search" })
+  @ApiOperation({ summary: "Find one menu item by a search term" })
   @ApiResponse({ status: 200, description: "Menu item", type: MenuItem })
   @ApiResponse({ status: 400, description: "Menu item is not available" })
   @ApiResponse({ status: 404, description: "Menu item not found" })

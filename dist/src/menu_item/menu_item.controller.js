@@ -89,7 +89,7 @@ __decorate([
     __metadata("design:returntype", void 0)
 ], MenuItemController.prototype, "findAll", null);
 __decorate([
-    (0, swagger_1.ApiOperation)({ summary: "Find one menu item by a term of search" }),
+    (0, swagger_1.ApiOperation)({ summary: "Find one menu item by a search term" }),
     (0, swagger_1.ApiResponse)({ status: 200, description: "Menu item", type: menu_item_entity_1.MenuItem }),
     (0, swagger_1.ApiResponse)({ status: 400, description: "Menu item is not available" }),
     (0, swagger_1.ApiResponse)({ status: 404, description: "Menu item not found" }),

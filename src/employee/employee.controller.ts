@@ -33,7 +33,7 @@ export class EmployeeController {
     return this.employeeService.findAll(pagination);
   }
 
-  @ApiOperation({ summary: "Find one employee by a term of search" })
+  @ApiOperation({ summary: "Find one employee by a search term" })
   @ApiResponse({ status: 200, description: "Employee", type: Employee })
   @ApiResponse({ status: 400, description: "Employee is not available" })
   @ApiResponse({ status: 401, description: "Unauthorized" })

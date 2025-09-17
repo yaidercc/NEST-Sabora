@@ -2,13 +2,21 @@
   <a href="http://nestjs.com/" target="blank"><img src="https://res.cloudinary.com/dhy3lbvua/image/upload/v1753823369/ChatGPT_Image_29_jul_2025_04_09_16_p.m._qdvywf.png" width="100%" height="700" alt="Nest Logo" style="border-radius:10px;"/></a>
 </p>
 
-# 🍲 Sabora
+🍲 Sabora
 
-**Sabora** is a modern and scalable restaurant management system designed to optimize ordering, reservations, and kitchen operations in food establishments.
+Sabora is a comprehensive system for managing the core operations of a restaurant.
 
-## 📌 About
+📌 About
 
-Sabora was built to provide a seamless and efficient experience for both restaurant staff and customers. It handles everything from order tracking and table reservations to employee roles and billing—all in a clean and structured system.
+Sabora provides the essential features to simplify day-to-day restaurant management, including:
+
+Reservation management: Organize tables and customer schedules.
+
+Staff administration: Create and manage users with different roles such as administrators, managers, waiters, and chefs.
+
+Orders & payments: Streamline order processing with integrated payments through Stripe.
+
+Menu control: Manage dishes and menu options with ease.
 
 ## ✨ Features
 
@@ -26,7 +34,7 @@ Sabora was built to provide a seamless and efficient experience for both restaur
 | Database      | PostgreSQL                          |
 | Testing       | Jest, Supertest                     |
 | Auth          | JWT, Passport.js                    |
-| Architecture  | Domain-Driven Design (DDD), TDD     |
+| Architecture  | TDD     |
 | Deployment    | Docker    |
 
 ## 🚀 Installation

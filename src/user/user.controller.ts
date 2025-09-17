@@ -77,7 +77,7 @@ export class UserController {
     return user
   }
 
-  @ApiOperation({ summary: "Find one user by a term of search" })
+  @ApiOperation({ summary: "Find one user by a search term" })
   @ApiBearerAuth('access-token')
   @ApiResponse({ status: 200, description: "User", type: User })
   @ApiResponse({ status: 401, description: "Unauthorized" })

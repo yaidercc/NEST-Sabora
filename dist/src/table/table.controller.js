@@ -83,7 +83,7 @@ __decorate([
     __metadata("design:returntype", void 0)
 ], TableController.prototype, "findAll", null);
 __decorate([
-    (0, swagger_1.ApiOperation)({ summary: "Find one table by a term of search" }),
+    (0, swagger_1.ApiOperation)({ summary: "Find one table by a search term" }),
     (0, swagger_1.ApiResponse)({ status: 200, description: "Table", type: table_entity_1.Table }),
     (0, swagger_1.ApiResponse)({ status: 400, description: "Table is not available" }),
     (0, swagger_1.ApiResponse)({ status: 404, description: "Table not found" }),
