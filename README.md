@@ -18,6 +18,17 @@ Orders & payments: Streamline order processing with integrated payments through 
 
 Menu control: Manage dishes and menu options with ease.
 
+## 🚀 Demo
+The API is deployed at:  
+👉 [https://sabora-api.yaidercc.me/api](https://sabora-api.yaidercc.me/api)
+
+## 🔑 Demo Admin User
+To test the main features of the API, you can use the following demo admin account:
+
+- **Username:** jhonDoe  
+- **Password:** Jhondoe123*
+
+
 ## ✨ Features
 
 - 🧑‍🍳 Role-based user management (Admins, Waiters, Chefs, etc.)
