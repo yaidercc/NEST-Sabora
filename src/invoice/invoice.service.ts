@@ -32,7 +32,6 @@ export class InvoiceService {
       const service_fee = Number(order.subtotal) * createInvoiceDto.service_fee_rate;
       const total = service_fee + Number(order.subtotal);
 
-
       const invoice = this.invoiceRepository.create({
         service_fee_rate: createInvoiceDto.service_fee_rate,
         payment_method: createInvoiceDto.payment_method,

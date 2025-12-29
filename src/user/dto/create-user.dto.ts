@@ -44,7 +44,7 @@ export class CreateUserDto {
     password: string;
 
     @ApiProperty({
-        example: "57356251432",
+        example: "573147264039",
         description: "User phone"
     })
     @ValidateIf((value) => value !== null && value !== undefined )

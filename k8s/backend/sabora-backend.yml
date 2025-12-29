@@ -1,0 +1,120 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sabora-backend
+  labels:
+    app: sabora-backend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: sabora-backend
+  template:
+    metadata:
+      labels:
+        app: sabora-backend
+    spec:
+      containers:
+        - name: sabora-backend
+          image: rediatcc/sabora-backend:1.0.1
+          ports:
+            - containerPort: 4100
+          env:
+            - name: APP_VERSION
+              value: "1.0.0"
+
+            - name: PORT
+              value: "4100"
+
+            - name: STAGE
+              value: "prod"
+
+            - name: DB_NAME
+              valueFrom:
+                configMapKeyRef:
+                  name: postgres-config
+                  key: DB_NAME
+
+            - name: DB_HOST
+              valueFrom:
+                configMapKeyRef:
+                  name: postgres-config
+                  key: DB_HOST
+
+            - name: DB_PORT
+              valueFrom:
+                configMapKeyRef:
+                  name: postgres-config
+                  key: DB_PORT
+
+            - name: DB_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-secrets
+                  key: DB_USERNAME
+
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-secrets
+                  key: DB_PASSWORD
+
+            - name: JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: sabora-secrets
+                  key: JWT_SECRET
+
+            - name: SENDGRID_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: sabora-secrets
+                  key: SENDGRID_API_KEY
+
+            - name: SENDGRID_TEMPLATE
+              valueFrom:
+                secretKeyRef:
+                  name: sabora-secrets
+                  key: SENDGRID_TEMPLATE
+
+            - name: SABORA_EMAIL
+              valueFrom:
+                secretKeyRef:
+                  name: sabora-secrets
+                  key: SABORA_EMAIL
+
+            - name: CLOUDINARY_CLOUD_NAME
+              valueFrom:
+                secretKeyRef:
+                  name: sabora-secrets
+                  key: CLOUDINARY_CLOUD_NAME
+
+            - name: CLOUDINARY_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: sabora-secrets
+                  key: CLOUDINARY_API_KEY
+
+            - name: CLOUDINARY_API_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: sabora-secrets
+                  key: CLOUDINARY_API_SECRET
+
+            - name: STRIPE_PUBLIC_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: sabora-secrets
+                  key: STRIPE_PUBLIC_KEY
+
+            - name: STRIPE_SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: sabora-secrets
+                  key: STRIPE_SECRET_KEY
+
+            - name: STRIPE_WEBHOOK_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: sabora-secrets
+                  key: STRIPE_WEBHOOK_SECRET

@@ -52,7 +52,7 @@ export class User {
         description: "User phone"
     })
     @Index()
-    @Column("text", { unique: true })
+    @Column("text")
     phone: string;
 
     @Column("boolean", {
